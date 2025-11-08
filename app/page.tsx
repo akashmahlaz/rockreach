@@ -12,6 +12,7 @@ import PricingSection from "@/components/pricing-section"
 import CTASection from "@/components/cta-section"
 import FooterSection from "@/components/footer-section"
 import LandingClient from "./landing-client"
+import Image from "next/image"
 
 // Reusable Badge Component
 function Badge({ icon, text }: { icon: React.ReactNode; text: string }) {
@@ -88,7 +89,7 @@ export default async function LandingPage() {
               </div>
 
               <div className="absolute top-[232px] sm:top-[248px] md:top-[264px] lg:top-[320px] left-1/2 transform -translate-x-1/2 z-0 pointer-events-none">
-                <img
+                <Image
                   src="/mask-group-pattern.svg"
                   alt=""
                   className="w-[936px] sm:w-[1404px] md:w-[2106px] lg:w-[2808px] h-auto opacity-30 sm:opacity-40 md:opacity-50 mix-blend-multiply"
