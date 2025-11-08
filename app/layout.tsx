@@ -2,6 +2,7 @@ import type React from "react"
 import type { Metadata } from "next"
 import { Inter, Instrument_Serif } from "next/font/google"
 import "./globals.css"
+import { Toaster } from "@/components/ui/sonner"
 
 const inter = Inter({
   subsets: ["latin"],
@@ -32,15 +33,11 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${inter.variable} ${instrumentSerif.variable} antialiased`}>
       <head>
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        <link
-          rel="stylesheet"
-          href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
-        />
-        <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Serif:wght@400&display=swap" />
       </head>
-      <body className="font-sans antialiased">{children}</body>
+      <body className="font-sans antialiased">
+        {children}
+        <Toaster position="top-right" richColors closeButton />
+      </body>
     </html>
   )
 }

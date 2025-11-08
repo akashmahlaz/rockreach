@@ -1,12 +1,10 @@
 import { auth } from "@/auth";
 import { redirect } from "next/navigation";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
-import { getDb } from "@/lib/db";
-import { Users, Search, Crown, User } from "lucide-react";
-import Image from "next/image";
+import { getDb, Collections } from "@/lib/db";
+import { Users } from "lucide-react";
+import { ObjectId } from "mongodb";
+import AdminUsersClient from "@/components/admin/admin-users-client";
 
 interface DbUser {
   _id?: unknown;
@@ -16,6 +14,29 @@ interface DbUser {
   role: string;
   emailVerified?: Date;
   createdAt?: Date;
+  orgId?: unknown;
+}
+
+interface DbOrganization {
+  _id?: unknown;
+  name: string;
+  slug?: string;
+}
+
+function toStringId(value: unknown) {
+  if (value instanceof ObjectId) {
+    return value.toHexString();
+  }
+
+  if (typeof value === "object" && value !== null && "toString" in value) {
+    try {
+      return String((value as { toString: () => string }).toString());
+    } catch (error) {
+      console.error("Unable to coerce id", error);
+    }
+  }
+
+  return value ? String(value) : "";
 }
 
 export default async function UsersManagementPage() {
@@ -32,13 +53,45 @@ export default async function UsersManagementPage() {
   // Get users from database
   const db = await getDb();
   const users = await db
-    .collection<DbUser>("users")
+    .collection<DbUser>(Collections.USERS)
     .find({})
     .sort({ createdAt: -1 })
     .toArray();
 
-  const adminCount = users.filter(u => u.role === "admin").length;
-  const userCount = users.filter(u => u.role === "user" || !u.role).length;
+  const organizations = await db
+    .collection<DbOrganization>(Collections.ORGANIZATIONS)
+    .find({})
+    .project({ name: 1, slug: 1 })
+    .toArray();
+
+  const organizationLookup = new Map(
+    organizations.map((org) => [toStringId(org._id), { id: toStringId(org._id), name: org.name, slug: org.slug }])
+  );
+
+  const serializedUsers = users.map((user) => {
+    const orgId = user.orgId ? toStringId(user.orgId) : "";
+    const organization = orgId ? organizationLookup.get(orgId) : undefined;
+
+    return {
+      id: toStringId(user._id),
+      email: user.email,
+      name: user.name ?? null,
+      image: user.image ?? null,
+      role: (user.role as "admin" | "user") ?? "user",
+      createdAt: user.createdAt ? user.createdAt.toISOString() : null,
+      orgId: orgId || null,
+      orgName: organization?.name ?? null,
+    };
+  });
+
+  const serializedOrganizations = organizations.map((org) => ({
+    id: toStringId(org._id),
+    name: org.name,
+    slug: org.slug ?? null,
+  }));
+
+  const adminCount = serializedUsers.filter((u) => u.role === "admin").length;
+  const userCount = serializedUsers.filter((u) => u.role === "user" || !u.role).length;
 
   return (
     <div className="min-h-screen bg-[#F7F5F3]">
@@ -90,23 +143,6 @@ export default async function UsersManagementPage() {
           </Card>
         </div>
 
-        {/* Search Bar */}
-        <div className="mb-6">
-          <div className="flex gap-3">
-            <div className="flex-1">
-              <Input
-                type="search"
-                placeholder="Search users by name or email..."
-                className="bg-white border-[rgba(55,50,47,0.12)] text-[#37322F]"
-              />
-            </div>
-            <Button className="bg-[#37322F] hover:bg-[#37322F]/90 text-white">
-              <Search className="w-4 h-4 mr-2" />
-              Search
-            </Button>
-          </div>
-        </div>
-
         {/* Users Table */}
         <Card className="border-[rgba(55,50,47,0.12)] bg-white">
           <CardHeader>
@@ -119,72 +155,7 @@ export default async function UsersManagementPage() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            {users.length === 0 ? (
-              <div className="text-center py-12">
-                <Users className="w-12 h-12 text-[#605A57] mx-auto mb-4" />
-                <p className="text-[#605A57]">No users found</p>
-              </div>
-            ) : (
-              <div className="space-y-4">
-                {users.map((user) => (
-                  <div
-                    key={user._id?.toString()}
-                    className="flex items-center justify-between p-4 border border-[rgba(55,50,47,0.12)] rounded-lg hover:bg-[#F7F5F3] transition-colors"
-                  >
-                    <div className="flex items-center gap-4 flex-1">
-                      <div className="w-12 h-12 rounded-full bg-[rgba(55,50,47,0.08)] flex items-center justify-center overflow-hidden">
-                        {user.image ? (
-                          <Image
-                            src={user.image}
-                            alt={user.name || user.email}
-                            width={48}
-                            height={48}
-                            className="w-12 h-12 rounded-full"
-                          />
-                        ) : (
-                          <User className="w-6 h-6 text-[#605A57]" />
-                        )}
-                      </div>
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2">
-                          <h3 className="font-medium text-[#37322F]">
-                            {user.name || "Unnamed User"}
-                          </h3>
-                          {user.role === "admin" && (
-                            <Badge className="bg-[#37322F] text-white hover:bg-[#37322F]/90">
-                              <Crown className="w-3 h-3 mr-1" />
-                              Admin
-                            </Badge>
-                          )}
-                        </div>
-                        <p className="text-sm text-[#605A57]">{user.email}</p>
-                        {user.createdAt && (
-                          <p className="text-xs text-[#605A57] mt-1">
-                            Joined {new Date(user.createdAt).toLocaleDateString()}
-                          </p>
-                        )}
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="border-[rgba(55,50,47,0.12)] text-[#37322F] hover:bg-[rgba(55,50,47,0.04)]"
-                      >
-                        Edit Role
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="text-[#605A57] hover:bg-[rgba(55,50,47,0.08)]"
-                      >
-                        View Details
-                      </Button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
+            <AdminUsersClient users={serializedUsers} organizations={serializedOrganizations} />
           </CardContent>
         </Card>
 
@@ -202,11 +173,9 @@ export default async function UsersManagementPage() {
               <strong className="text-[#37322F]">User:</strong> Standard access to lead search, saved leads,
               and personal dashboard.
             </p>
-            <p className="pt-2 text-xs">
-              <strong>Note:</strong> To change user roles, update the `role` field in the MongoDB users collection:
-              <code className="ml-2 px-2 py-1 bg-[rgba(55,50,47,0.08)] rounded text-[#37322F]">
-                db.users.updateOne({`{email: "user@example.com"}`}, {`{$set: {role: "admin"}}`})
-              </code>
+            <p>
+              Use the <em>Edit Role</em> action above to promote collaborators or assign them to an organization.
+              Every workspace should keep at least one admin available for emergency access.
             </p>
           </CardContent>
         </Card>
