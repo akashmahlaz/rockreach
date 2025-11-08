@@ -110,7 +110,7 @@ export default function AdminUsersClient({ users, organizations }: AdminUsersCli
       payload.role = roleValue
     }
 
-    const normalizedOrg = orgValue.length > 0 ? orgValue : null
+    const normalizedOrg = orgValue === "__unassigned__" ? null : orgValue
     const currentOrg = activeUser.orgId ?? null
 
     if (normalizedOrg !== currentOrg) {
@@ -273,12 +273,12 @@ export default function AdminUsersClient({ users, organizations }: AdminUsersCli
 
               <div className="space-y-2">
                 <Label>Organization</Label>
-                <Select value={orgValue} onValueChange={setOrgValue}>
+                <Select value={orgValue || "__unassigned__"} onValueChange={setOrgValue}>
                   <SelectTrigger className="bg-white border-[rgba(55,50,47,0.12)] text-[#37322F]">
                     <SelectValue placeholder="Assign an organization" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">Unassigned</SelectItem>
+                    <SelectItem value="__unassigned__">Unassigned</SelectItem>
                     {organizations.map((org) => (
                       <SelectItem key={org.id} value={org.id}>
                         {org.name}

@@ -73,17 +73,15 @@ export async function PATCH(
   updates.updatedAt = new Date();
 
   const db = await getDb();
+  
   const updateResult = await db.collection("users").findOneAndUpdate(
     { _id: new ObjectId(id) },
     { $set: updates },
     { returnDocument: "after" }
   );
 
-  if (!updateResult) {
-    return NextResponse.json({ ok: false, error: "User not found" }, { status: 404 });
-  }
-
-  const updatedUser = updateResult.value as Record<string, unknown> | null;
+  // MongoDB returns the document directly, not wrapped in a value property
+  const updatedUser = updateResult as Record<string, unknown> | null;
 
   if (!updatedUser) {
     return NextResponse.json({ ok: false, error: "User not found" }, { status: 404 });
