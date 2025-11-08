@@ -1,14 +1,35 @@
-import { Schema, model, models } from 'mongoose';
+import { getDb, Collections } from '@/lib/db';
+import { ObjectId } from 'mongodb';
 
-const OrganizationSchema = new Schema({
-  name: { type: String, required: true },
-  slug: { type: String, unique: true, required: true },
-  plan: { type: String, default: 'free', enum: ['free', 'starter', 'professional', 'enterprise'] },
-  status: { type: String, default: 'active', enum: ['active', 'suspended', 'cancelled'] },
-  ownerId: String,
-  memberIds: [String],
-}, { timestamps: true });
+export interface Organization {
+  _id?: ObjectId;
+  name: string;
+  slug: string;
+  plan: 'free' | 'starter' | 'professional' | 'enterprise';
+  status: 'active' | 'suspended' | 'cancelled';
+  ownerId?: string;
+  memberIds?: string[];
+  createdAt: Date;
+  updatedAt: Date;
+}
 
-OrganizationSchema.index({ slug: 1 });
+export async function createOrganization(data: Omit<Organization, '_id' | 'createdAt' | 'updatedAt'>) {
+  const db = await getDb();
+  return db.collection<Organization>(Collections.ORGANIZATIONS).insertOne({
+    ...data,
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  });
+}
 
-export default models.Organization || model('Organization', OrganizationSchema);
+export async function getOrganization(slug: string) {
+  const db = await getDb();
+  return db.collection<Organization>(Collections.ORGANIZATIONS).findOne({ slug });
+}
+
+export async function createIndexes() {
+  const db = await getDb();
+  const collection = db.collection<Organization>(Collections.ORGANIZATIONS);
+  
+  await collection.createIndex({ slug: 1 }, { unique: true });
+}

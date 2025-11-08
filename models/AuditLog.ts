@@ -1,18 +1,46 @@
-import { Schema, model, models } from 'mongoose';
+import { getDb, Collections } from '@/lib/db';
+import { ObjectId } from 'mongodb';
 
-const AuditLogSchema = new Schema({
-  orgId: { type: String, index: true, required: true },
-  actorId: String,
-  actorEmail: String,
-  action: { type: String, required: true },
-  target: String,
-  targetId: String,
-  meta: Schema.Types.Mixed,
-  ipAddress: String,
-  userAgent: String,
-}, { timestamps: true });
+export interface AuditLog {
+  _id?: ObjectId;
+  orgId: string;
+  actorId?: string;
+  actorEmail?: string;
+  action: string;
+  target?: string;
+  targetId?: string;
+  meta?: Record<string, unknown>;
+  ipAddress?: string;
+  userAgent?: string;
+  createdAt: Date;
+}
 
-AuditLogSchema.index({ orgId: 1, createdAt: -1 });
-AuditLogSchema.index({ actorId: 1, createdAt: -1 });
+export async function createAuditLog(data: Omit<AuditLog, '_id' | 'createdAt'>) {
+  const db = await getDb();
+  return db.collection<AuditLog>(Collections.AUDIT_LOGS).insertOne({
+    ...data,
+    createdAt: new Date(),
+  });
+}
 
-export default models.AuditLog || model('AuditLog', AuditLogSchema);
+export async function getAuditLogs(
+  orgId: string,
+  filter: Partial<AuditLog> = {},
+  limit = 100
+) {
+  const db = await getDb();
+  return db.collection<AuditLog>(Collections.AUDIT_LOGS)
+    .find({ orgId, ...filter })
+    .sort({ createdAt: -1 })
+    .limit(limit)
+    .toArray();
+}
+
+export async function createIndexes() {
+  const db = await getDb();
+  const collection = db.collection<AuditLog>(Collections.AUDIT_LOGS);
+  
+  await collection.createIndex({ orgId: 1, createdAt: -1 });
+  await collection.createIndex({ actorId: 1, createdAt: -1 });
+  await collection.createIndex({ action: 1 });
+}

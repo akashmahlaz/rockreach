@@ -19,9 +19,9 @@ const instrumentSerif = Instrument_Serif({
 })
 
 export const metadata: Metadata = {
-  title: "Brillance - Effortless Custom Contract Billing",
+  title: "RocketReach Lead Gen - Find and Connect with Prospects",
   description:
-    "Streamline your billing process with seamless automation for every custom contract, tailored by Brillance.",
+    "Streamline your lead generation process with RocketReach API integration. Find contacts, build lists, and grow your business.",
 }
 
 export default function RootLayout({

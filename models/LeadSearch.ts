@@ -1,13 +1,36 @@
-import { Schema, model, models } from 'mongoose';
+import { getDb, Collections } from '@/lib/db';
+import { ObjectId } from 'mongodb';
 
-const LeadSearchSchema = new Schema({
-  orgId: { type: String, index: true, required: true },
-  query: Schema.Types.Mixed,
-  filters: Schema.Types.Mixed,
-  resultCount: Number,
-  executedBy: String,
-}, { timestamps: true });
+export interface LeadSearch {
+  _id?: ObjectId;
+  orgId: string;
+  query: Record<string, unknown>;
+  filters: Record<string, unknown>;
+  resultCount: number;
+  executedBy?: string;
+  createdAt: Date;
+}
 
-LeadSearchSchema.index({ orgId: 1, createdAt: -1 });
+export async function createLeadSearch(data: Omit<LeadSearch, '_id' | 'createdAt'>) {
+  const db = await getDb();
+  return db.collection<LeadSearch>(Collections.LEAD_SEARCHES).insertOne({
+    ...data,
+    createdAt: new Date(),
+  });
+}
 
-export default models.LeadSearch || model('LeadSearch', LeadSearchSchema);
+export async function getRecentSearches(orgId: string, limit = 10) {
+  const db = await getDb();
+  return db.collection<LeadSearch>(Collections.LEAD_SEARCHES)
+    .find({ orgId })
+    .sort({ createdAt: -1 })
+    .limit(limit)
+    .toArray();
+}
+
+export async function createIndexes() {
+  const db = await getDb();
+  const collection = db.collection<LeadSearch>(Collections.LEAD_SEARCHES);
+  
+  await collection.createIndex({ orgId: 1, createdAt: -1 });
+}
