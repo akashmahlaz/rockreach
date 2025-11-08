@@ -27,7 +27,7 @@ interface LeadDocument {
   updatedAt?: Date;
 }
 
-export default async function LeadDetailsPage({ params }: { params: { id: string } }) {
+export default async function LeadDetailsPage({ params }: { params: Promise<{ id: string }> }) {
   const session = await auth();
 
   if (!session?.user) {
@@ -40,14 +40,16 @@ export default async function LeadDetailsPage({ params }: { params: { id: string
     redirect("/dashboard");
   }
 
-  if (!ObjectId.isValid(params.id)) {
+  const { id } = await params;
+
+  if (!ObjectId.isValid(id)) {
     notFound();
   }
 
   const db = await getDb();
   const lead = await db
     .collection<LeadDocument>(Collections.LEADS)
-    .findOne({ _id: new ObjectId(params.id), orgId });
+    .findOne({ _id: new ObjectId(id), orgId });
 
   if (!lead) {
     notFound();
