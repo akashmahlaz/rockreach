@@ -135,7 +135,7 @@ export function UnifiedNavbar({ user }: UnifiedNavbarProps) {
                       <ListItem href="/leads/search" title="Search Leads (Classic Way)" icon={<SearchIcon className="h-4 w-4" />}>
                         Find prospects by LinkedIn or email
                       </ListItem>
-                       <ListItem href="/assistant" title="Agentic AI Search" icon={<SearchIcon className="h-4 w-4" />}>
+                       <ListItem href="/c" title="Agentic AI Search" icon={<SearchIcon className="h-4 w-4" />}>
                         Agentic AI - Your AI Lead Research Assistant
                       </ListItem>
                       {/* <ListItem href="/leads/bulk" title="Bulk Upload" icon={<Upload className="h-4 w-4" />}>

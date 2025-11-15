@@ -75,8 +75,15 @@ export async function POST(req: Request) {
   try {
     const body = await req.json();
     
+    if (!body.id) {
+      return NextResponse.json(
+        { error: "Conversation ID is required" },
+        { status: 400 }
+      );
+    }
+    
     const conversationId = await createConversation({
-      id: body.id || `conv-${Date.now()}`,
+      id: body.id,
       orgId,
       userId,
       title: body.title || "New chat",
@@ -86,6 +93,8 @@ export async function POST(req: Request) {
 
     // Invalidate cache
     await cacheDel(`conversations:${userId}`);
+
+    console.log('[POST /api/assistant/conversations] Created:', conversationId);
 
     return NextResponse.json({ 
       success: true, 
@@ -117,15 +126,25 @@ export async function PATCH(req: Request) {
       return NextResponse.json({ error: "Conversation ID required" }, { status: 400 });
     }
 
+    console.log('[PATCH /api/assistant/conversations] Updating:', {
+      id,
+      userId,
+      hasMessages: !!update.messages,
+      messageCount: update.messages?.length || 0,
+    });
+
     const success = await updateConversation(id, userId, update);
 
     if (!success) {
+      console.warn('[PATCH /api/assistant/conversations] Conversation not found:', id);
       return NextResponse.json({ error: "Conversation not found" }, { status: 404 });
     }
 
     // Invalidate cache
     await cacheDel(`conversation:${userId}:${id}`);
     await cacheDel(`conversations:${userId}`);
+
+    console.log('[PATCH /api/assistant/conversations] Updated successfully:', id);
 
     return NextResponse.json({ success: true });
   } catch (error) {

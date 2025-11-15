@@ -42,7 +42,9 @@ export async function createConversation(data: Omit<Conversation, '_id' | 'creat
   };
 
   const result = await db.collection<Conversation>(Collections.CONVERSATIONS).insertOne(conversation as Conversation);
-  return result.insertedId;
+  
+  // Return the id field (our custom ID), not MongoDB's _id
+  return data.id;
 }
 
 export async function updateConversation(
@@ -52,17 +54,26 @@ export async function updateConversation(
 ) {
   const db = await getDb();
   
-  const result = await db.collection<Conversation>(Collections.CONVERSATIONS).updateOne(
-    { id, userId, deletedAt: { $exists: false } },
-    { 
-      $set: { 
-        ...update, 
-        updatedAt: new Date() 
-      } 
-    }
-  );
+  try {
+    const result = await db.collection<Conversation>(Collections.CONVERSATIONS).updateOne(
+      { id, userId, deletedAt: { $exists: false } },
+      { 
+        $set: { 
+          ...update, 
+          updatedAt: new Date() 
+        } 
+      }
+    );
 
-  return result.modifiedCount > 0;
+    if (result.matchedCount === 0) {
+      console.warn(`[updateConversation] No conversation found with id: ${id}, userId: ${userId}`);
+    }
+
+    return result.modifiedCount > 0;
+  } catch (error) {
+    console.error('[updateConversation] Error:', error);
+    throw error;
+  }
 }
 
 export async function getConversations(userId: string, orgId: string, limit = 50) {

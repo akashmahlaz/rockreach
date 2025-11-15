@@ -161,12 +161,14 @@ export function createAssistantTools({ orgId, userId }: ToolContext) {
           };
         } catch (error) {
           console.error("searchRocketReach error:", error);
+          const errorMessage = error instanceof Error ? error.message : "Failed to search RocketReach";
           return {
             success: false,
-            error: error instanceof Error ? error.message : "Failed to search RocketReach",
+            error: errorMessage,
             leads: [],
             total: 0,
             returned: 0,
+            message: `Search failed: ${errorMessage}. Please try again or adjust your search criteria.`,
           };
         }
       },
@@ -186,10 +188,12 @@ export function createAssistantTools({ orgId, userId }: ToolContext) {
           };
         } catch (error) {
           console.error("lookupRocketReachProfile error:", error);
+          const errorMessage = error instanceof Error ? error.message : "Failed to lookup profile";
           return {
             success: false,
-            error: error instanceof Error ? error.message : "Failed to lookup profile",
+            error: errorMessage,
             lead: null,
+            message: `Failed to enrich profile: ${errorMessage}. The profile may not exist or API limit reached.`,
           };
         }
       },
@@ -339,7 +343,10 @@ export function createAssistantTools({ orgId, userId }: ToolContext) {
           if (!whatsappSettings) {
             return {
               success: false,
-              error: "WhatsApp integration is not configured. Please configure it in Settings.",
+              error: "WhatsApp integration not configured",
+              message: "⚠️ WhatsApp integration is not set up. Please configure it in Settings before sending messages.",
+              sent: 0,
+              total: phoneNumbers.length,
             };
           }
 

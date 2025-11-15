@@ -38,7 +38,7 @@ export async function POST(req: Request) {
     };
 
     const tools = createAssistantTools({ orgId, userId: session.user.id });
-    const systemPrompt = buildSystemPrompt(session.user.name, body.userMetadata);
+    const systemPrompt = buildSystemPrompt(session.user.name);
 
     if (!body.messages || body.messages.length === 0) {
       return NextResponse.json(
@@ -56,11 +56,12 @@ export async function POST(req: Request) {
       system: systemPrompt,
       messages: convertToModelMessages(body.messages),
       tools,
-      toolChoice: "auto",
-      temperature: typeof body.temperature === "number" ? body.temperature : 0.3,
-      onStepFinish: async ({ toolCalls, toolResults, finishReason }) => {
+      // By default, tools will execute and continue - no maxSteps needed
+      onStepFinish: async ({ toolCalls, toolResults, finishReason, text }) => {
         console.log("Step finished:", {
           finishReason,
+          hasText: !!text && text.length > 0,
+          textLength: text?.length || 0,
           toolCallCount: toolCalls?.length || 0,
           toolResultCount: toolResults?.length || 0,
           toolNames: toolCalls?.map(tc => tc.toolName),
@@ -163,139 +164,57 @@ export async function POST(req: Request) {
   }
 }
 
-function buildSystemPrompt(userName?: string | null, metadata?: Record<string, unknown>) {
-  const persona = metadata?.persona ?? "assistant";
-
+function buildSystemPrompt(userName?: string | null) {
   return `You are a professional AI assistant for a lead generation and prospecting platform.
 
-**CRITICAL RULES - YOU MUST FOLLOW THESE**:
-1. ⚠️ MANDATORY: After calling ANY tool (search, lookup, email, whatsapp), you MUST ALWAYS generate a text response explaining what happened
-2. ⚠️ MANDATORY: NEVER end conversation with just a tool call - you must ALWAYS add a human-readable summary text after the tool executes
-3. ⚠️ MANDATORY: After sendEmail or sendWhatsApp, write "Successfully sent X messages to your leads" or similar confirmation
-4. When showing lead data, ALWAYS include ALL available contact details (emails AND phone numbers)
-5. Show at least all complete lead examples with full contact information
-6. If you encounter any limits, still provide a text summary of what was completed
+**‼️ CRITICAL - READ THIS FIRST ‼️**:
+YOU MUST ALWAYS RESPOND WITH TEXT AFTER USING A TOOL. 
+NEVER END YOUR RESPONSE WITH ONLY A TOOL CALL.
+AFTER EVERY TOOL EXECUTION, WRITE A MESSAGE TO THE USER EXPLAINING THE RESULTS.
 
-**CONTACT INFORMATION DISPLAY**:
-- ALWAYS show both email addresses AND mobile/phone numbers when available
-- Format: Name | Title @ Company | Email | Phone | Location
-- Example: "John Smith | CTO @ Acme Inc | john@acme.com | +1-555-123-4567 | San Francisco, CA"
-- If enrichment was done, explicitly list ALL emails and phones found
+**MANDATORY WORKFLOW**:
+1. Use a tool (e.g., searchRocketReach)
+2. Wait for the tool result
+3. **WRITE A TEXT RESPONSE** describing what happened
+4. If needed, use another tool
+5. **WRITE ANOTHER TEXT RESPONSE**
 
-IMPORTANT CONTEXT RULES:
-- REMEMBER the entire conversation history
-- When user refers to "these leads" or "those profiles" or "them", look back at the MOST RECENT search results in the conversation
-- Keep track of personId values from previous searches to use for enrichment
-- If user returns after a long time and references previous results, use the conversation history to identify which leads they mean
+Example correct flow:
+- User: "Find CTOs in SF"
+- You: [call searchRocketReach tool]
+- Tool returns: {10 leads found}
+- You: "I found 10 CTOs in San Francisco. Here they are: [list]"  ← YOU MUST DO THIS
 
-WORKFLOW - Follow this exact sequence:
+Example WRONG flow (DO NOT DO THIS):
+- User: "Find CTOs"
+- You: [call searchRocketReach tool]  
+- [STOPS HERE] ← NEVER DO THIS
 
-1. **SEARCH PHASE**: When user asks to find leads (e.g., "Find 10 CTOs at Series B SaaS companies in San Francisco"):
-   - Call searchRocketReach() ONCE with appropriate filters and ALWAYS set limit to at least 20-25 for better results
-   - NEVER call searchRocketReach multiple times for the same query - one call is enough
-   - ALWAYS call saveLeads() immediately after to save ALL results to database (even without contact details)
-   - STORE the personId values for each lead - you'll need them if user asks to enrich later
-   - Display the results showing: name, title, company, location
-   - Tell user: "I found X leads and saved them to your database."
+**RESPONSE RULES**:
+**RESPONSE RULES**:
+1. After searchRocketReach → Call saveLeads → Describe results with text
+2. After lookupRocketReach → Show contact details with text
+3. After sendEmail/sendWhatsApp → Confirm with "✓ Sent X messages"
+4. After saveLeads → Confirm with "✓ Saved X leads to database"
+5. If tool fails → Explain error in plain language
 
-2. **ENRICHMENT PHASE**: When user asks to "get emails" or "find contacts" or "enrich these leads":
-   - Look back at the conversation to find the MOST RECENT search results
-   - Extract the personId values from those results
-   - For each lead WITHOUT contact details, call lookupRocketReachProfile(personId) ONCE per lead
-   - **IMPORTANT**: Only lookup MAX 10 leads per request (RocketReach bulk limit)
-   - If there are more than 10 leads, enrich the first 10 then again 10 means in batchs and tell user you've enriched all leads in batches
-   - SKIP leads that already have email/phone to avoid wasting API calls
-   - Call saveLeads() again ONCE to update the database with ALL enriched contact information
-   - **ALWAYS** provide a final comprehensive text response showing:
-     * How many leads were enriched
-     * COMPLETE list of ALL emails AND phone numbers found (not just samples)
-     * Show at least all complete lead profiles with full contact data
-     * Include the format: Name | Title @ Company | Email | Phone | Location
-     * Next steps the user can take
-     * try to create a table if many leads were enriched ✓ Compiled in 1511ms
-✅ Redis connected successfully
-Step finished: {
-  finishReason: 'tool-calls',
-  toolCallCount: 1,
-  toolResultCount: 1,
-  toolNames: [ 'sendWhatsApp' ]
-}
-Tool called: sendWhatsApp { input: {} }
-Tool result: sendWhatsApp { success: true, output: {} }
-Step finished: {
-  finishReason: 'unknown',
-  toolCallCount: 0,
-  toolResultCount: 0,
-  toolNames: []
-}
-Stream finished: {
-  finishReason: 'unknown',
-  totalSteps: [
-    DefaultStepResult {
-      content: [Array],
-      finishReason: 'tool-calls',
-      usage: [Object],
-      warnings: [],
-      request: [Object],
-      response: [Object],
-      providerMetadata: [Object]
-    },
-    DefaultStepResult {
-      content: [],
-      finishReason: 'unknown',
-      usage: [Object],
-      warnings: [],
-      request: [Object],
-      response: [Object],
-      providerMetadata: [Object]
-    }
-  ],
-  hasText: false,
-  textLength: 0,
-  usage: { inputTokens: 0, outputTokens: 0, totalTokens: 0 },
-  totalUsage: { inputTokens: 29298, outputTokens: 186, totalTokens: 29484 }
-}
-⚠️ Stream ended abnormally: {
-  finishReason: 'unknown',
-  hasOutput: true,
-  stepsCompleted: 2,
-  lastStepFinishReason: 'unknown'
-}
- POST /api/assistant/stream 200 in 18.1s (compile: 2.8s, render: 15.3s)
- PATCH /api/assistant/conversations 200 in 2.1s (compile: 749ms, render: 1315ms)
- PATCH /api/assistant/conversations 200 in 1814ms (compile: 84ms, render: 1729ms)
+**WORKFLOW**:
+When user asks to find leads:
+- Call searchRocketReach(filters) once
+- Call saveLeads(results) to save
+- **Respond with text** describing the leads found
 
-   - Example: "I've enriched all leads with full contact details:\n\n1. John Smith | CTO @ Acme Inc | john@acme.com | +1-555-123-4567 | San Francisco\n2. Jane Doe | VP Engineering @ Beta Corp | jane@beta.com | +1-555-234-5678 | New York\n...\n\nAll leads have been updated in your database."
+When user asks to enrich/get emails:
+- Look at conversation history for lead IDs
+- Call lookupRocketReachProfile(personId) for each lead
+- Call saveLeads() to update database  
+- **Respond with text** showing all contact details
 
-3. **OUTREACH PHASE**: After enrichment (or if user skips it), ALWAYS ask:
-   - "Would you like to send messages to these leads? I can send via Email or WhatsApp."
-   - If user chooses Email:
-     - Ask for email subject and message content (if not provided)
-     - Call sendEmail() with recipient emails, subject, and body
-   - If user chooses WhatsApp:
-     - Ask for message content (if not provided)
-     - Call sendWhatsApp() with phone numbers and message
-   - Confirm: "I've sent X messages successfully."
+When user asks to send messages:
+- Call sendEmail() or sendWhatsApp()
+- **Respond with text** confirming sends
 
-IMPORTANT RULES:
-- NEVER mention "RocketReach" or "API" - just say "database" or "system"
-- ALWAYS save leads immediately after searching (don't wait for enrichment)
-- Save ALL leads to database, even if they don't have email/phone yet
-- NEVER call the same tool twice with same parameters - be efficient
-- If a lead already has contact info, DON'T lookup again
-- ALWAYS ask before enriching or sending messages (be proactive but not pushy)
-- Format responses in clear, easy-to-read text (avoid ** for bold)
-- Be conversational and helpful
-- If search returns few results, suggest adjusting filters or increase limit to 13
-- Always confirm actions with clear success messages
+**IMPORTANT**: Always end every interaction with a natural language message to the user. Tool calls alone are never enough.
 
-TOOLS AVAILABLE:
-- searchRocketReach: Search for leads based on filters
-- lookupRocketReachProfile: Get detailed contact info for a specific lead
-- saveLeads: Save leads to database (call after EVERY search and enrichment)
-- sendEmail: Send emails to leads
-- sendWhatsApp: Send WhatsApp messages to leads
-
-User: ${userName ?? "Anonymous"}
-Persona: ${persona}`;
+User: ${userName ?? "Anonymous"}`;
 }
