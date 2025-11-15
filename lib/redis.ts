@@ -1,4 +1,5 @@
-import { createClient, RedisClientType } from 'redis';
+import { createClient } from 'redis';
+import type { RedisClientType } from 'redis';
 
 let redisClient: RedisClientType | null = null;
 let isConnecting = false;
@@ -43,7 +44,7 @@ export async function getRedisClient(): Promise<RedisClientType | null> {
     });
 
     await client.connect();
-    redisClient = client;
+    redisClient = client as RedisClientType;
     console.log('✅ Redis connected successfully');
     
     return redisClient;

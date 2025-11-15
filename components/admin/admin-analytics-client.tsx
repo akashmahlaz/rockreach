@@ -17,11 +17,11 @@ import {
   DollarSign,
   Users,
   Zap,
-  TrendingUp,
   MessageSquare,
   Search,
   Loader2,
   RefreshCw,
+  Settings,
 } from "lucide-react";
 
 interface AnalyticsData {
@@ -86,6 +86,7 @@ export function AdminAnalyticsClient() {
 
   useEffect(() => {
     fetchAnalytics();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [period]);
 
   if (loading || !data) {
@@ -104,6 +105,20 @@ export function AdminAnalyticsClient() {
           <p className="text-slate-600 mt-1">Monitor AI and API usage across your organization</p>
         </div>
         <div className="flex items-center gap-3">
+          <Button 
+            onClick={() => window.location.href = "/admin/users"} 
+            variant="outline"
+          >
+            <Users className="h-4 w-4 mr-2" />
+            Manage Users
+          </Button>
+          <Button 
+            onClick={() => window.location.href = "/admin/ai-providers"} 
+            variant="outline"
+          >
+            <Settings className="h-4 w-4 mr-2" />
+            AI Providers
+          </Button>
           <select
             value={period}
             onChange={(e) => setPeriod(e.target.value as "24h" | "7d" | "30d")}

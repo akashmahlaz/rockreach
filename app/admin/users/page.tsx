@@ -12,6 +12,8 @@ interface DbUser {
   name?: string;
   image?: string;
   role: string;
+  banned?: boolean;
+  bannedAt?: Date;
   emailVerified?: Date;
   createdAt?: Date;
   orgId?: unknown;
@@ -78,6 +80,8 @@ export default async function UsersManagementPage() {
       name: user.name ?? null,
       image: user.image ?? null,
       role: (user.role as "admin" | "user") ?? "user",
+      banned: user.banned ?? false,
+      bannedAt: user.bannedAt ?? null,
       createdAt: user.createdAt ? user.createdAt.toISOString() : null,
       orgId: orgId || null,
       orgName: organization?.name ?? null,

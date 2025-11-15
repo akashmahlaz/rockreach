@@ -3,10 +3,11 @@
 import { useEffect, useMemo, useState } from "react"
 import { useRouter } from "next/navigation"
 import Image from "next/image"
-import { Users as UsersIcon, Crown, Search, User as UserIcon, Loader2 } from "lucide-react"
+import { Users as UsersIcon, Crown, Search, User as UserIcon, Loader2, Ban, CheckCircle } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
+import { UserActions } from "@/components/admin/user-actions"
 import {
   Dialog,
   DialogContent,
@@ -31,6 +32,8 @@ interface AdminUser {
   name?: string | null
   image?: string | null
   role: "admin" | "user"
+  banned?: boolean
+  bannedAt?: Date | null
   createdAt?: string | null
   orgId?: string | null
   orgName?: string | null
@@ -212,6 +215,12 @@ export default function AdminUsersClient({ users, organizations }: AdminUsersCli
                         Admin
                       </Badge>
                     )}
+                    {user.banned && (
+                      <Badge variant="destructive" className="gap-1">
+                        <Ban className="h-3 w-3" />
+                        Banned
+                      </Badge>
+                    )}
                     {user.orgName && (
                       <Badge variant="outline" className="border-[rgba(55,50,47,0.12)] text-[#37322F]">
                         {user.orgName}
@@ -238,6 +247,12 @@ export default function AdminUsersClient({ users, organizations }: AdminUsersCli
                 >
                   Edit Role
                 </Button>
+                <UserActions 
+                  userId={user.id}
+                  email={user.email}
+                  name={user.name}
+                  banned={user.banned}
+                />
               </div>
             </div>
           ))}
