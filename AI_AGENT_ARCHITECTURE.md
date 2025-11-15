@@ -3,6 +3,70 @@
 ## Overview
 Build an autonomous AI agent that can browse websites, find leads, send personalized emails, track responses, and take follow-up actions - all without human intervention.
 
+## Conversation Assistant (ChatGPT-style experience)
+
+### Goals
+- Deliver a dedicated `/assistant` surface that mimics ChatGPT’s layout while inheriting the hero section palette (`bg-linear-to-t from-amber-200 to-white`, slate typography, pill CTAs).
+- Stream DeepSeek (default) or other configured LLM responses via SSE with a v0.dev-inspired “thinking ribbon” that animates above the composer.
+- Orchestrate RocketReach-powered lead lookups in real time—no mock data, every suggestion ties back to actual `rrSearchPeople` results stored in MongoDB.
+- Persist every turn (prompt, retrieved leads, tool calls, tokens) for auditability and agent learning.
+
+### Frontend Surface
+| Layer | Implementation Notes |
+| --- | --- |
+| Route | `app/assistant/page.tsx` (server) loads session + org + default AI provider, then renders `AssistantClient`. |
+| Client | `app/assistant/assistant-client.tsx` uses `useChat` from `ai/react` for streaming, but overrides render props to inject hero-themed bubbles: warm cream background panels, slate copy, amber accent borders. |
+| Layout | Section wrapper mirrors hero: `bg-linear-to-t from-amber-200/60 via-white to-white`, glassmorphic chat window (`bg-white/80 border border-slate-100 shadow-[0_20px_60px_rgba(15,23,42,0.12)] rounded-4xl`). Composer floats with pill controls; send CTA reuses hero button styles. |
+| Loader | v0.dev-style “breathing” bar: `before` pseudo-element sweeps amber gradient across a thin pill placed above the input whenever `isThinking`. |
+| Message Cards | User messages align right with slate/white pill, assistant replies align left with subtle amber glow, optional inline lead cards rendered via `components/leads/profile-card` but recolored to hero palette for consistency. |
+| Context Drawer | Collapsible rail on the right that surfaces RocketReach hits, API usage, and step-by-step reasoning; matches hero badge styling (`bg-white/85 border-slate-50 rounded-full`). |
+
+### Server Pipeline
+1. **Entry point** – `app/api/assistant/stream/route.ts` (POST) authenticates via `auth()`, resolves `orgId`, and creates/updates a conversation record in `assistant_conversations`.
+2. **Provider selection** – uses `getAIProvider(orgId, providerId?)` (default flagged provider or explicit DeepSeek). Converts to `ai` SDK model factory (`deepseek('deepseek-chat')` etc.).
+3. **Context assembly** – loads latest leads, saved searches, and prior assistant turns for the conversation. Adds hero-specific style instructions (tone, formatting) plus org guardrails (PII, compliance) to the system prompt.
+4. **Tool wiring** – exposes `searchLeadsRealTime`, `fetchLeadDetails`, `summarizeLeadList`, and `logStep`. Each tool internally calls RocketReach helpers (`rrSearchPeople`, `rrLookupProfile`) and persists structured results to `assistant_messages` subdocuments.
+5. **Streaming** – uses `streamText` from `ai` to push SSE chunks (text + tool status) back to the client. Simultaneously logs token usage to `ApiUsage` and updates `assistant_conversations` with incremental deltas for resume-on-refresh.
+6. **Completion hook** – once finish reason is reached, final chunk includes `leadReferences[]` so client can render cards. Store the assistant response, tool outputs, tokens, provider metadata, and hero color context for analytics.
+
+### Data Model Additions
+- `Collections.ASSISTANT_CONVERSATIONS`
+  - `_id`, `organizationId`, `userId`, `title`, `createdAt`, `updatedAt`, `lastMessageAt`, `activeProviderId`, `context` (saved filters, ICP notes), `colorTheme` (frozen hero snapshot for deterministic styling).
+- `Collections.ASSISTANT_MESSAGES`
+  - `conversationId`, `role` (`user|assistant|tool`), `content`, `toolCalls[]`, `leadRefs[]` (ObjectId of leads), `rocketReachPayload` (raw response for audit), `tokenUsage`, `createdAt`.
+
+### RocketReach Integration Flow (no mocks)
+1. User asks for leads ➝ assistant requests `searchLeadsRealTime` tool.
+2. Tool grabs auth context (orgId), calls `rrSearchPeople` with filters extracted from the LLM (title, company, location, etc.).
+3. Responses are normalized into `Lead` documents via existing `models/Lead.ts` helpers; duplicates are merged, and references stored in `assistant_messages.leadRefs`.
+4. Summaries in the chat cite actual leads (`“Found Priya (CTO @ NimbusHR)”`) with `leadId` so clicking a chip opens the real profile drawer.
+5. Errors (rate limits, bad params) bubble back as structured tool outputs so the assistant can explain what happened.
+
+### DeepSeek & Multi-Provider Strategy
+- Add DeepSeek credentials through the existing AI Provider admin UI (provider=`deepseek`).
+- `app/api/assistant/stream` always tries `providerId` from the request; if missing, fall back to the default provider flagged in `AI_PROVIDERS`.
+- Provider metadata (model name, temperature, baseUrl) is injected into the `streamText` call. `response.usage` updates both `assistant_messages.tokenUsage` and `ApiUsage` for cost tracking.
+- Future-ready: because we rely on `getAIProvider`, swapping to GPT/Gemini just requires toggling the default provider—no code changes in the assistant stack.
+
+### Hero Palette Guardrails
+- Define a shared token file (e.g., `lib/theme/hero.ts`) exporting the exact utility strings and custom CSS variables (`--hero-cream`, `--hero-amber`, `--hero-slate`).
+- Assistant components import these tokens to keep gradients, borders, and typography synchronized with `components/marketing/hero.tsx`.
+- Snapshot the palette and store it on each conversation so historic threads remember the styling hints if the hero ever changes.
+
+### Streaming Reliability & UX polish
+- Composer disables send while a request is in flight; pressing `Esc` cancels by hitting `/api/assistant/stream/cancel` which looks up the in-progress controller and aborts the `streamText` request.
+- Skeleton state (v0-style loader) triggers immediately on submit and ends on `done` chunk to avoid flicker.
+- Auto-scroll is offset-aware, ensuring the hero gradient background remains visible at the top for branding continuity.
+
+### Next Steps Breakdown
+1. Scaffold `/app/assistant` route + client shell with hero-themed styling + loader.
+2. Implement `assistant_conversations` + `assistant_messages` models and wire them into `Collections` constants.
+3. Ship `/api/assistant/stream` with DeepSeek default + RocketReach tool wiring.
+4. Add QA hooks (unit tests for tool schema parsing, integration tests hitting a mocked RocketReach server, visual regression on hero-aligned components).
+
+---
+
+
 ## 🤖 Agent Capabilities
 
 ### 1. **Lead Discovery Agent**

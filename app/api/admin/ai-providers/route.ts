@@ -23,11 +23,10 @@ export async function GET() {
     const orgId = session.user.orgId || '';
     const providers = await getAIProviders(orgId);
 
-    // Don't send full API keys to client
-    const safeProviders = providers.map(p => ({
-      ...p,
-      apiKey: undefined,
-      hasCredentials: p.hasCredentials,
+    // Don't send secrets to the client
+    const safeProviders = providers.map(({ apiKey, apiKeyEncrypted, ...rest }) => ({
+      ...rest,
+      hasCredentials: Boolean(apiKeyEncrypted || apiKey || rest.hasCredentials),
     }));
 
     return NextResponse.json({ providers: safeProviders });
@@ -65,9 +64,16 @@ export async function POST(req: NextRequest) {
       config,
     } = body;
 
-    if (!provider || !name || !apiKey || !defaultModel) {
+    if (!provider || !name || !defaultModel) {
       return NextResponse.json(
         { error: 'Missing required fields' },
+        { status: 400 }
+      );
+    }
+
+    if (!_id && !apiKey) {
+      return NextResponse.json(
+        { error: 'API key is required for new providers' },
         { status: 400 }
       );
     }
@@ -103,7 +109,15 @@ export async function POST(req: NextRequest) {
       });
     }
 
-    return NextResponse.json({ success: true, provider: result });
+    const safeResult = result
+      ? {
+          ...result,
+          apiKey: undefined,
+          apiKeyEncrypted: undefined,
+        }
+      : null;
+
+    return NextResponse.json({ success: true, provider: safeResult });
   } catch (error) {
     console.error('Failed to upsert AI provider:', error);
     return NextResponse.json(

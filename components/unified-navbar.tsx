@@ -140,18 +140,18 @@ export function UnifiedNavbar({ user }: UnifiedNavbarProps) {
                       <ListItem href="/leads/search" title="Search Leads" icon={<SearchIcon className="h-4 w-4" />}>
                         Find prospects by LinkedIn or email
                       </ListItem>
-                      <ListItem href="/leads/bulk" title="Bulk Upload" icon={<Upload className="h-4 w-4" />}>
+                      {/* <ListItem href="/leads/bulk" title="Bulk Upload" icon={<Upload className="h-4 w-4" />}>
                         Upload company list + roles for bulk enrichment
-                      </ListItem>
-                      <ListItem href="/leads" title="My Leads" icon={<Users className="h-4 w-4" />}>
+                      </ListItem> */}
+                      <ListItem href="/leads" title="Leads" icon={<Users className="h-4 w-4" />}>
                         View and manage your saved leads
                       </ListItem>
-                      <ListItem href="/leads/lists" title="Lead Lists" icon={<List className="h-4 w-4" />}>
+                      {/* <ListItem href="/leads/lists" title="Lead Lists" icon={<List className="h-4 w-4" />}>
                         Organize leads into custom lists
                       </ListItem>
                       <ListItem href="/leads/advanced-search" title="Advanced Search" icon={<Building2 className="h-4 w-4" />}>
                         Search by company + niche + designation
-                      </ListItem>
+                      </ListItem> */}
                     </ul>
                   </NavigationMenuContent>
                 </NavigationMenuItem>

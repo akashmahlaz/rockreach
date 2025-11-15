@@ -96,7 +96,7 @@ export default function TestimonialsSection() {
                   transition: "filter 0.7s ease-in-out",
                 }}
               >
-                "{testimonials[activeTestimonial].quote}"
+                &ldquo;{testimonials[activeTestimonial].quote}&rdquo;
               </div>
               <div
                 className="self-stretch flex flex-col justify-start items-start gap-1 transition-all duration-700 ease-in-out"

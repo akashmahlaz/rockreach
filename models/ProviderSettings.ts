@@ -1,11 +1,14 @@
 import { getDb, Collections } from '@/lib/db';
+import { encryptSecret, type EncryptedData } from '@/lib/crypto';
 
 export interface AIProviderSettings {
   _id?: string;
   organizationId: string;
   provider: 'openai' | 'anthropic' | 'google' | 'mistral' | 'groq' | 'deepseek' | 'cohere' | 'perplexity';
   name: string; // User-friendly name like "Production OpenAI"
-  apiKey: string; // Plain text API key
+  apiKeyEncrypted?: EncryptedData; // Encrypted API key blob
+  // Legacy support for old plaintext records — should be undefined for new inserts
+  apiKey?: string;
   baseUrl?: string; // Optional custom endpoint
   defaultModel: string; // e.g., "gpt-4o", "claude-3-5-sonnet-20241022"
   isEnabled: boolean;
@@ -53,7 +56,7 @@ export async function getAIProviders(orgId: string) {
 
   return providers.map(p => ({
     ...p,
-    hasCredentials: !!p.apiKey,
+    hasCredentials: Boolean(p.apiKeyEncrypted || p.apiKey),
   }));
 }
 
@@ -97,11 +100,18 @@ export async function upsertAIProvider(
     );
   }
 
+  const { apiKey, apiKeyEncrypted: _ignore, ...rest } = data;
+  void _ignore;
+
   const updateData: Partial<AIProviderSettings> = {
-    ...data,
+    ...rest,
     organizationId: orgId,
     updatedAt: now,
   };
+
+  if (typeof apiKey === 'string' && apiKey.trim().length > 0) {
+    updateData.apiKeyEncrypted = encryptSecret(apiKey.trim());
+  }
 
   if (data._id) {
     // Update existing

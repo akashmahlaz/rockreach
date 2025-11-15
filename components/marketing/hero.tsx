@@ -14,16 +14,16 @@ export async function Hero() {
         <div className="inline-flex items-center gap-2 px-4 py-2 mb-6 rounded-full border border-slate-50 bg-white/80 shadow-sm backdrop-blur">
           <Sparkles className="h-4 w-4 text-amber-400" />
           <span className="text-sm font-medium text-slate-700">
-            Lead Generation Powered by AI
+            Built for professionals
           </span>
         </div>
 
         {/* Heading */}
         <h1 className="text-5xl sm:text-6xl lg:text-7xl font-bold tracking-tight text-slate-900 mb-6">
-          Find and connect with
+          The First AI Powered
           <br />
           <span className="bg-linear-to-r font-bold font-sans from-slate-900 via-gray-800 to-gray-700  bg-clip-text text-transparent">
-            prospects effortlessly
+            Lead Generation Platform
           </span>
         </h1>
 

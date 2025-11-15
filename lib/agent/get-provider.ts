@@ -5,7 +5,8 @@ import { createMistral } from '@ai-sdk/mistral';
 import { createGroq } from '@ai-sdk/groq';
 import { createDeepSeek } from '@ai-sdk/deepseek';
 import { createCohere } from '@ai-sdk/cohere';
-import { getAIProviderById, getDefaultAIProvider } from '@/models/ProviderSettings';
+import { getAIProviderById, getDefaultAIProvider, type AIProviderSettings } from '@/models/ProviderSettings';
+import { decryptSecret } from '@/lib/crypto';
 
 export async function getAIProvider(orgId: string, providerId?: string) {
   const provider = providerId 
@@ -16,7 +17,12 @@ export async function getAIProvider(orgId: string, providerId?: string) {
     throw new Error('No AI provider configured');
   }
 
-  const { provider: providerType, apiKey, defaultModel, baseUrl, config } = provider;
+  const { provider: providerType, defaultModel, baseUrl, config } = provider;
+  const apiKey = resolveApiKey(provider);
+
+  if (!apiKey) {
+    throw new Error('AI provider is missing an API key');
+  }
 
   // Initialize the appropriate SDK
   switch (providerType) {
@@ -86,4 +92,12 @@ export async function getAIProvider(orgId: string, providerId?: string) {
     default:
       throw new Error(`Unsupported AI provider: ${providerType}`);
   }
+}
+
+function resolveApiKey(provider: AIProviderSettings): string {
+  if (provider.apiKeyEncrypted) {
+    return decryptSecret(provider.apiKeyEncrypted) || '';
+  }
+
+  return provider.apiKey || '';
 }

@@ -7,13 +7,15 @@ import PricingSection from "@/components/marketing/pricing"
 import FAQSection from "@/components/marketing/faq"
 import CTASection from "@/components/marketing/cta"
 import FooterSection from "@/components/marketing/footer"
+import { FeaturedVideo } from "@/components/home/video"
 
 export default async function LandingPage() {
   return (
-    <div className="w-full min-h-screen bg-linear-to-t from-amber-200 to-white">
+    <div className="w-full min-h-screen ">
       <Hero />
-      <Features />
-      <ProductDemo />
+      <FeaturedVideo/>
+      {/* <Features />
+      <ProductDemo /> */}
       <Stats />
       <Testimonials />
       <PricingSection />
