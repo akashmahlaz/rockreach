@@ -429,12 +429,12 @@ export function ChatClient({ conversationId, user }: ChatClientProps) {
             });
             
             if (res.ok) {
-              setConversations((prev) => prev.filter((c) => c.id !== id));
+              const nextList = conversations.filter((c) => c.id !== id);
+              setConversations(nextList);
               if (activeConvId === id) {
-                const remaining = conversations.filter((c) => c.id !== id);
                 // Navigate to first remaining conversation or new chat
-                if (remaining.length > 0) {
-                  router.push(`/c/${remaining[0].id}`);
+                if (nextList.length > 0) {
+                  router.push(`/c/${nextList[0].id}`);
                 } else {
                   router.push('/c/new');
                 }

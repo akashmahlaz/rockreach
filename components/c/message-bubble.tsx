@@ -74,7 +74,7 @@ export function MessageBubble({
               
               if (part.type === "text") {
                 // Clean up the text to remove RocketReach mentions and format nicely
-                let cleanText = part.text
+                const cleanText = part.text
                   .replace(/RocketReach/gi, "our database")
                   .replace(/rocket reach/gi, "our database");
                 
@@ -121,10 +121,11 @@ export function MessageBubble({
                       <div className="text-sm font-normal text-slate-700 mb-2">
                         Found {toolPart.output.leads.length} lead(s):
                       </div>
+                      {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
                       {toolPart.output.leads.slice(0, 5).map((lead: any, idx: number) => (
                         <div key={idx} className="p-3 rounded-lg border border-slate-200 bg-white hover:shadow-sm transition-shadow">
                           <div className="flex items-start gap-3">
-                            <div className="flex-shrink-0 w-10 h-10 rounded-full bg-gradient-to-br from-amber-400 to-amber-500 flex items-center justify-center text-white font-medium">
+                            <div className="shrink-0 w-10 h-10 rounded-full bg-linear-to-br from-amber-400 to-amber-500 flex items-center justify-center text-white font-medium">
                               {lead.fullName?.charAt(0) || lead.firstName?.charAt(0) || '?'}
                             </div>
                             <div className="flex-1 min-w-0">
@@ -203,16 +204,28 @@ export function MessageBubble({
         </div>
         
         {/* Action Buttons */}
-        {!isUser && message.parts.some(part => part.type === "text" && part.text.trim().length > 0) && (
+        {message.parts.some(part => part.type === "text" && part.text.trim().length > 0) && (
           <div className="mt-2 flex gap-1">
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => onCopy(message)}
-              className="h-7 w-7 text-slate-600 hover:bg-slate-100 hover:text-slate-900"
-            >
-              <Copy className="h-3.5 w-3.5" />
-            </Button>
+            {!isUser && (
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => onCopy(message)}
+                className="h-7 w-7 text-slate-600 hover:bg-slate-100 hover:text-slate-900"
+              >
+                <Copy className="h-3.5 w-3.5" />
+              </Button>
+            )}
+            {isUser && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={onEdit}
+                className="h-7 px-2 text-slate-600 hover:bg-slate-100 hover:text-slate-900"
+              >
+                Edit
+              </Button>
+            )}
           </div>
         )}
       </div>
