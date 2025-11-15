@@ -9,16 +9,19 @@ import {
   Bot,
   CheckCircle2,
   Copy,
+  DollarSign,
   Edit3,
   Loader2,
   MoreVertical,
   Plus,
   Send,
   Sparkles,
+  TrendingUp,
   Trash2,
   User,
   Users,
   Settings,
+  Zap,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
@@ -50,6 +53,17 @@ interface Conversation {
 interface ThinkingStep {
   label: string;
   status: "pending" | "active" | "complete";
+}
+
+interface UsageStats {
+  period: string;
+  totalTokens: number;
+  totalCalls: number;
+  successCalls: number;
+  errorCalls: number;
+  avgDurationMs: number;
+  estimatedCost: string;
+  costPerCall: string;
 }
 
 // Dynamic thinking steps that update based on backend activity
@@ -97,6 +111,9 @@ export function AssistantClient({ user }: AssistantClientProps) {
   const [thinkingSteps, setThinkingSteps] = useState<ThinkingStep[]>([]);
   const [renamingConvId, setRenamingConvId] = useState<string | null>(null);
   const [renameValue, setRenameValue] = useState("");
+  const [usageStats, setUsageStats] = useState<UsageStats | null>(null);
+  const [usagePeriod, setUsagePeriod] = useState<"24h" | "7d" | "30d">("30d");
+  const [loadingStats, setLoadingStats] = useState(false);
 
   // Local input state for the textarea
   const [localInput, setLocalInput] = useState("");
@@ -282,6 +299,27 @@ export function AssistantClient({ user }: AssistantClientProps) {
       localStorage.setItem("assistant-conversations", JSON.stringify(conversations));
     }
   }, [conversations]);
+
+  // Fetch usage stats
+  const fetchUsageStats = async (period: string) => {
+    setLoadingStats(true);
+    try {
+      const res = await fetch(`/api/assistant/usage?period=${period}`);
+      if (res.ok) {
+        const data = await res.json();
+        setUsageStats(data);
+      }
+    } catch (error) {
+      console.error("Error fetching usage stats:", error);
+    } finally {
+      setLoadingStats(false);
+    }
+  };
+
+  // Load usage stats on mount and when period changes
+  useEffect(() => {
+    fetchUsageStats(usagePeriod);
+  }, [usagePeriod]);
 
   const createNewConversation = () => {
     const newConv: Conversation = {
@@ -606,6 +644,83 @@ export function AssistantClient({ user }: AssistantClientProps) {
             ))}
           </div>
 
+          {/* AI Usage Stats Section */}
+          {isSidebarExpanded && usageStats && (
+            <div className="border-t border-slate-200 px-3 py-3">
+              <div className="bg-gradient-to-br from-amber-50 to-orange-50 rounded-lg p-3 border border-amber-200/50">
+                <div className="flex items-center justify-between mb-2">
+                  <h3 className="text-xs font-semibold text-amber-900 flex items-center gap-1">
+                    <DollarSign className="h-3 w-3" />
+                    AI Usage
+                  </h3>
+                  <select
+                    value={usagePeriod}
+                    onChange={(e) => setUsagePeriod(e.target.value as "24h" | "7d" | "30d")}
+                    className="text-xs border border-amber-200 rounded px-1.5 py-0.5 bg-white focus:outline-none focus:ring-1 focus:ring-amber-400"
+                  >
+                    <option value="24h">24h</option>
+                    <option value="7d">7d</option>
+                    <option value="30d">30d</option>
+                  </select>
+                </div>
+                
+                {loadingStats ? (
+                  <div className="flex items-center justify-center py-2">
+                    <Loader2 className="h-4 w-4 animate-spin text-amber-500" />
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <span className="text-2xl font-bold text-amber-900">
+                        ${usageStats.estimatedCost}
+                      </span>
+                      <span className="text-xs text-amber-700 bg-amber-100 px-2 py-0.5 rounded-full">
+                        Est. cost
+                      </span>
+                    </div>
+                    
+                    <div className="grid grid-cols-2 gap-2 text-xs">
+                      <div className="bg-white/60 rounded p-2">
+                        <div className="flex items-center gap-1 text-slate-600 mb-1">
+                          <Zap className="h-3 w-3" />
+                          <span>Tokens</span>
+                        </div>
+                        <div className="font-semibold text-slate-900">
+                          {usageStats.totalTokens.toLocaleString()}
+                        </div>
+                      </div>
+                      
+                      <div className="bg-white/60 rounded p-2">
+                        <div className="flex items-center gap-1 text-slate-600 mb-1">
+                          <TrendingUp className="h-3 w-3" />
+                          <span>Calls</span>
+                        </div>
+                        <div className="font-semibold text-slate-900">
+                          {usageStats.totalCalls}
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div className="text-xs text-amber-700 pt-1 border-t border-amber-200">
+                      <div className="flex justify-between">
+                        <span>Avg/call:</span>
+                        <span className="font-medium">${usageStats.costPerCall}</span>
+                      </div>
+                      <div className="flex justify-between mt-0.5">
+                        <span>Success rate:</span>
+                        <span className="font-medium">
+                          {usageStats.totalCalls > 0
+                            ? Math.round((usageStats.successCalls / usageStats.totalCalls) * 100)
+                            : 0}%
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
           {/* Bottom Section - Settings and User */}
           <div className="border-t border-slate-200">
             <div className="px-3 py-2 space-y-1">
@@ -690,30 +805,59 @@ export function AssistantClient({ user }: AssistantClientProps) {
                 </div>
               )}
 
-              {/* Thinking Steps */}
-              {thinkingSteps.length > 0 && (
-                <div className="mt-6 rounded-lg border border-amber-200 bg-amber-50/50 p-4">
-                  <div className="mb-3 flex items-center gap-2">
-                    <Loader2 className="h-4 w-4 animate-spin text-amber-500" />
-                    <span className="text-sm font-medium text-amber-900">Thinking...</span>
-                  </div>
-                  <div className="space-y-2">
-                    {thinkingSteps.map((step, idx) => (
-                      <div
-                        key={idx}
-                        className={cn(
-                          "flex items-center gap-2 text-sm transition-all",
-                          step.status === "complete" && "text-green-700",
-                          step.status === "active" && "font-medium text-amber-700",
-                          step.status === "pending" && "text-slate-400"
-                        )}
-                      >
-                        {step.status === "complete" && <CheckCircle2 className="h-4 w-4 text-green-600" />}
-                        {step.status === "active" && <Loader2 className="h-4 w-4 animate-spin text-amber-500" />}
-                        {step.status === "pending" && <div className="h-4 w-4 rounded-full border border-slate-300" />}
-                        <span>{step.label}</span>
+              {/* Big Transparent Loading Overlay - Only show when loading */}
+              {isLoading && (
+                <div className="fixed inset-0 bg-black/5 backdrop-blur-sm flex items-center justify-center z-50">
+                  <div className="bg-white/95 backdrop-blur-md rounded-2xl shadow-2xl p-8 max-w-md mx-4 border border-amber-200/50">
+                    <div className="flex flex-col items-center gap-6">
+                      {/* Animated spinner */}
+                      <div className="relative w-20 h-20">
+                        <div className="absolute inset-0 border-4 border-amber-200 rounded-full"></div>
+                        <div className="absolute inset-0 border-4 border-amber-500 rounded-full border-t-transparent animate-spin"></div>
+                        <div className="absolute inset-0 flex items-center justify-center">
+                          <Sparkles className="h-8 w-8 text-amber-500 animate-pulse" />
+                        </div>
                       </div>
-                    ))}
+                      
+                      {/* Thinking steps */}
+                      <div className="w-full space-y-3">
+                        {thinkingSteps.map((step, idx) => (
+                          <div key={idx} className="flex items-center gap-3 text-sm">
+                            <div className={cn(
+                              "w-5 h-5 rounded-full flex items-center justify-center transition-all duration-300",
+                              step.status === "complete" && "bg-green-500",
+                              step.status === "active" && "bg-amber-500 animate-pulse",
+                              step.status === "pending" && "bg-slate-200"
+                            )}>
+                              {step.status === "complete" && (
+                                <CheckCircle2 className="h-3 w-3 text-white" />
+                              )}
+                              {step.status === "active" && (
+                                <Loader2 className="h-3 w-3 text-white animate-spin" />
+                              )}
+                            </div>
+                            <span className={cn(
+                              "font-medium transition-colors",
+                              step.status === "complete" && "text-green-700",
+                              step.status === "active" && "text-amber-900",
+                              step.status === "pending" && "text-slate-400"
+                            )}>
+                              {step.label}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                      
+                      {/* Stop button */}
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={stop}
+                        className="mt-2 border-amber-300 hover:bg-amber-50"
+                      >
+                        Stop generating
+                      </Button>
+                    </div>
                   </div>
                 </div>
               )}

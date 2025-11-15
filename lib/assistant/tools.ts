@@ -125,7 +125,7 @@ export function createAssistantTools({ orgId, userId }: ToolContext) {
         location: z.string().optional().describe("City, region, or country (e.g., 'San Francisco', 'New York')"),
         domain: z.string().optional().describe("Company email domain"),
         name: z.string().optional().describe("Person's name if known"),
-        limit: z.number().min(1).max(25).default(10).describe("Maximum number of leads to return"),
+        limit: z.number().min(1).max(25).default(25).describe("Maximum number of leads to return (default: 25)"),
       }),
       execute: async (input: {
         company?: string;
