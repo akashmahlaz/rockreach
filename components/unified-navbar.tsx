@@ -107,13 +107,13 @@ export function UnifiedNavbar({ user }: UnifiedNavbarProps) {
                         </Link>
                       </NavigationMenuLink>
                     </li>
-                    <ListItem href="#features" title="Features">
+                    <ListItem href="/features" title="Features">
                       Discover powerful lead generation capabilities
                     </ListItem>
-                    <ListItem href="#pricing" title="Pricing">
+                    <ListItem href="/pricing" title="Pricing">
                       Simple, transparent pricing for every team
                     </ListItem>
-                    <ListItem href="#faq" title="FAQ">
+                    <ListItem href="/faq" title="FAQ">
                       Frequently asked questions and answers
                     </ListItem>
                   </ul>
@@ -132,13 +132,16 @@ export function UnifiedNavbar({ user }: UnifiedNavbarProps) {
                   <NavigationMenuTrigger>Leads</NavigationMenuTrigger>
                   <NavigationMenuContent>
                     <ul className="grid gap-3 p-4 md:w-[450px] lg:w-[550px] lg:grid-cols-2">
-                      <ListItem href="/leads/search" title="Search Leads" icon={<SearchIcon className="h-4 w-4" />}>
+                      <ListItem href="/leads/search" title="Search Leads (Classic Way)" icon={<SearchIcon className="h-4 w-4" />}>
                         Find prospects by LinkedIn or email
+                      </ListItem>
+                       <ListItem href="/assistance" title="Agentic AI Search" icon={<SearchIcon className="h-4 w-4" />}>
+                        Agentic AI - Your AI Lead Research Assistant
                       </ListItem>
                       {/* <ListItem href="/leads/bulk" title="Bulk Upload" icon={<Upload className="h-4 w-4" />}>
                         Upload company list + roles for bulk enrichment
                       </ListItem> */}
-                      <ListItem href="/leads" title="Leads" icon={<Users className="h-4 w-4" />}>
+                      <ListItem href="/leads" title="All Leads" icon={<Users className="h-4 w-4" />}>
                         View and manage your saved leads
                       </ListItem>
                       {/* <ListItem href="/leads/lists" title="Lead Lists" icon={<List className="h-4 w-4" />}>
