@@ -23,7 +23,7 @@ export function ThinkingRibbon({ active, label = "Assistant is thinking" }: Thin
         )}
       >
         <div className="absolute inset-0 rounded-full" style={{ animation: "assistantShimmer 1.8s linear infinite" }}>
-          <div className="h-full w-full bg-linear-to-r from-amber-200 via-amber-500/70 to-amber-200 opacity-80" />
+          <div className="h-full w-full bg-gradient-to-r from-amber-200 via-amber-500/70 to-amber-200 opacity-80" />
         </div>
       </div>
       <style jsx>{`

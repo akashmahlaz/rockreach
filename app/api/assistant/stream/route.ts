@@ -1,9 +1,12 @@
 import { auth } from "@/auth";
 import { NextResponse } from "next/server";
-import { convertToCoreMessages, streamText } from "ai";
-import { getAIProvider } from "@/lib/agent/get-provider";
+import { streamText, convertToModelMessages, UIMessage, stepCountIs } from "ai";
 import { logApiUsage } from "@/models/ApiUsage";
 import { createAssistantTools } from "@/lib/assistant/tools";
+import { getDefaultModel } from "@/lib/ai-provider";
+
+// Allow streaming responses up to 30 seconds
+export const maxDuration = 30;
 
 export async function POST(req: Request) {
   const session = await auth();
@@ -17,45 +20,115 @@ export async function POST(req: Request) {
 
   try {
     const body = (await req.json()) as {
-      messages?: unknown[];
-      providerId?: string;
+      messages: UIMessage[];
       temperature?: number;
       userMetadata?: Record<string, unknown>;
     };
 
-    const provider = await getAIProvider(orgId, body.providerId);
-    const tools = createAssistantTools({ orgId });
+    const tools = createAssistantTools({ orgId, userId: session.user.id });
     const systemPrompt = buildSystemPrompt(session.user.name, body.userMetadata);
 
-    const result = await streamText({
-      model: provider.model,
+    if (!body.messages || body.messages.length === 0) {
+      return NextResponse.json(
+        { error: "No messages provided" },
+        { status: 400 }
+      );
+    }
+
+    // Get the default AI model configured by admin
+    const model = await getDefaultModel(orgId);
+    const provider = "assistant"; // Generic name for logging
+
+    const result = streamText({
+      model,
       system: systemPrompt,
-      messages: convertToCoreMessages(body.messages || []),
+      messages: convertToModelMessages(body.messages),
       tools,
       toolChoice: "auto",
-      temperature:
-        typeof body.temperature === "number"
-          ? body.temperature
-          : (provider.config?.temperature as number | undefined) ?? 0.3,
+      temperature: typeof body.temperature === "number" ? body.temperature : 0.3,
+      stopWhen: stepCountIs(10), // Allow up to 10 steps for complex workflows
+      onStepFinish: async ({ toolCalls, toolResults, finishReason }) => {
+        console.log("Step finished:", {
+          finishReason,
+          toolCallCount: toolCalls?.length || 0,
+          toolResultCount: toolResults?.length || 0,
+          toolNames: toolCalls?.map(tc => tc.toolName),
+        });
+        
+        // Log each tool execution
+        if (toolCalls && toolCalls.length > 0) {
+          toolCalls.forEach(tc => {
+            console.log(`Tool called: ${tc.toolName}`, {
+              input: "args" in tc ? tc.args : {},
+            });
+          });
+        }
+        
+        if (toolResults && toolResults.length > 0) {
+          toolResults.forEach(tr => {
+            const result = "result" in tr ? tr.result : {};
+            console.log(`Tool result: ${tr.toolName}`, {
+              success: result && typeof result === "object" && !("error" in result),
+              output: result,
+            });
+          });
+        }
+      },
+      onFinish: async ({ usage, totalUsage, finishReason, steps }) => {
+        console.log("Stream finished:", { 
+          finishReason, 
+          totalSteps: steps || 0,
+          usage: {
+            inputTokens: usage?.inputTokens || 0,
+            outputTokens: usage?.outputTokens || 0,
+            totalTokens: usage?.totalTokens || 0,
+          },
+          totalUsage: {
+            inputTokens: totalUsage?.inputTokens || 0,
+            outputTokens: totalUsage?.outputTokens || 0,
+            totalTokens: totalUsage?.totalTokens || 0,
+          }
+        });
+        await logApiUsage({
+          orgId,
+          provider,
+          endpoint: "assistant_stream",
+          method: "POST",
+          units: totalUsage?.totalTokens || usage?.totalTokens || 0,
+          status: "success",
+          durationMs: Date.now() - startedAt,
+        });
+      },
+      onError: async ({ error }) => {
+        console.error("Stream error:", error);
+        await logApiUsage({
+          orgId,
+          provider,
+          endpoint: "assistant_stream",
+          method: "POST",
+          units: 0,
+          status: "error",
+          durationMs: Date.now() - startedAt,
+          error: error instanceof Error ? error.message : "Unknown error",
+        });
+      },
     });
 
-    await logApiUsage({
-      orgId,
-      provider: provider.providerInfo?.type ?? "assistant-model",
-      endpoint: "assistant_stream",
-      method: "POST",
-      units: 1,
-      status: "streaming",
-      durationMs: Date.now() - startedAt,
+    return result.toUIMessageStreamResponse({
+      onError: (error) => {
+        console.error("Stream response error:", error);
+        if (error instanceof Error) {
+          return error.message;
+        }
+        return "An error occurred while processing your request.";
+      },
     });
-
-    return result.toUIMessageStreamResponse();
   } catch (error) {
     console.error("Assistant stream error", error);
 
     await logApiUsage({
       orgId,
-      provider: "assistant-model",
+      provider: "assistant",
       endpoint: "assistant_stream",
       method: "POST",
       units: 0,
@@ -72,16 +145,50 @@ export async function POST(req: Request) {
 }
 
 function buildSystemPrompt(userName?: string | null, metadata?: Record<string, unknown>) {
-  const persona = metadata?.persona ?? "rockreach-hero";
+  const persona = metadata?.persona ?? "assistant";
 
-  return `You are the RockReach GPT-style assistant running inside a hero-colored UI.
-Stay factual, cite RocketReach results when available, and be transparent about sources.
-Keep replies concise, helpful, and styled for a professional lead-generation workflow.
-You have structured tools:
-- searchRocketReach(company?, title?, location?, domain?, name?, limit?) => pull live contacts.
-- lookupRocketReachProfile(personId) => enrich a specific contact.
-Always call these tools before answering lead or contact questions so results are grounded in real RocketReach data.
-Summaries should reference the actual leads by name and role.
+  return `You are a professional AI assistant for a lead generation and prospecting platform powered by RocketReach API.
+
+WORKFLOW - Follow this exact sequence:
+
+1. **SEARCH PHASE**: When user asks to find leads (e.g., "Find 10 CTOs at Series B SaaS companies in San Francisco"):
+   - ALWAYS call searchRocketReach() FIRST with appropriate filters (title, location, company, etc.)
+   - Display the results in a formatted list with names, titles, companies, and LinkedIn URLs
+   - ALWAYS call saveLeads() immediately after to save results to database
+   - Inform user: "I found X leads and saved them to your database."
+
+2. **ENRICHMENT PHASE**: After showing search results, ALWAYS ask:
+   - "Would you like me to find their emails, photos, and other detailed information using RocketReach?"
+   - If user says yes/affirmative:
+     - For each lead, call lookupRocketReachProfile(personId) to get enriched data
+     - Display enriched information (emails, phones, photos if available)
+     - Call saveLeads() again to update the database with enriched data
+     - Show: "I've enriched X leads with contact information and saved the updates."
+
+3. **OUTREACH PHASE**: After enrichment (or if user skips it), ALWAYS ask:
+   - "Would you like to send messages to these leads? I can send via Email or WhatsApp."
+   - If user chooses Email:
+     - Ask for email subject and message content
+     - Call sendEmail() with recipient emails, subject, and body
+   - If user chooses WhatsApp:
+     - Ask for message content
+     - Call sendWhatsApp() with phone numbers and message
+   - Confirm: "I've sent X messages successfully."
+
+TOOLS AVAILABLE:
+- searchRocketReach(company?, title?, location?, domain?, name?, limit?) => Search for leads
+- lookupRocketReachProfile(personId) => Enrich a lead with detailed contact info
+- saveLeads(leads[]) => Save leads to database (call after every search/enrichment)
+- sendEmail(to[], subject, body, leadIds?) => Send emails to leads
+- sendWhatsApp(phoneNumbers[], message, leadIds?) => Send WhatsApp messages
+
+IMPORTANT RULES:
+- NEVER skip calling saveLeads() after search results
+- ALWAYS ask before enriching or sending messages
+- Format lead lists clearly with markdown (use **bold** for names, [links](url) for LinkedIn)
+- Be conversational and helpful
+- If RocketReach returns limited results, mention it and suggest adjusting filters
+
 User: ${userName ?? "Anonymous"}
 Persona: ${persona}`;
 }

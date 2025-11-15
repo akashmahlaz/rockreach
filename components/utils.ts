@@ -1,30 +1,43 @@
-export const cls = (...c) => c.filter(Boolean).join(" ");
+export const cls = (...classes: Array<string | false | null | undefined>): string =>
+  classes.filter(Boolean).join(" ");
 
-export function timeAgo(date) {
-  const d = typeof date === "string" ? new Date(date) : date;
+export function timeAgo(date: Date | string | number): string {
+  const d = typeof date === "string" || typeof date === "number" ? new Date(date) : date;
   const now = new Date();
-  const sec = Math.max(1, Math.floor((now - d) / 1000));
+  const sec = Math.max(1, Math.floor((now.getTime() - d.getTime()) / 1000));
   const rtf = new Intl.RelativeTimeFormat(undefined, { numeric: "auto" });
-  const ranges = [
-    [60, "seconds"], [3600, "minutes"], [86400, "hours"],
-    [604800, "days"], [2629800, "weeks"], [31557600, "months"],
+  const unitSeconds: Record<Intl.RelativeTimeFormatUnit, number> = {
+    second: 1,
+    seconds: 1,
+    minute: 60,
+    minutes: 60,
+    hour: 3600,
+    hours: 3600,
+    day: 86400,
+    days: 86400,
+    week: 604800,
+    weeks: 604800,
+    month: 2629800,
+    months: 2629800,
+    quarter: 7889400,
+    quarters: 7889400,
+    year: 31557600,
+    years: 31557600,
+  };
+  const ranges: Array<[number, Intl.RelativeTimeFormatUnit]> = [
+    [60, "second"], [3600, "minute"], [86400, "hour"],
+    [604800, "day"], [2629800, "week"], [31557600, "month"],
   ];
-  let unit = "years";
-  let value = -Math.floor(sec / 31557600);
-  for (const [limit, u] of ranges) {
+  let unit: Intl.RelativeTimeFormatUnit = "year";
+  let value = -Math.floor(sec / unitSeconds.year);
+  for (const [limit, limitUnit] of ranges) {
     if (sec < limit) {
-      unit = u;
-      const div =
-        unit === "seconds" ? 1 :
-        limit / (unit === "minutes" ? 60 :
-        unit === "hours" ? 3600 :
-        unit === "days" ? 86400 :
-        unit === "weeks" ? 604800 : 2629800);
-      value = -Math.floor(sec / div);
+      unit = limitUnit;
+      value = -Math.floor(sec / unitSeconds[unit]);
       break;
     }
   }
-  return rtf.format(value, /** @type {Intl.RelativeTimeFormatUnit} */ (unit));
+  return rtf.format(value, unit);
 }
 
-export const makeId = (p) => `${p}${Math.random().toString(36).slice(2, 10)}`;
+export const makeId = (prefix: string): string => `${prefix}${Math.random().toString(36).slice(2, 10)}`;

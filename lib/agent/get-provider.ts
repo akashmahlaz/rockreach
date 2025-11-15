@@ -6,7 +6,6 @@ import { createGroq } from '@ai-sdk/groq';
 import { createDeepSeek } from '@ai-sdk/deepseek';
 import { createCohere } from '@ai-sdk/cohere';
 import { getAIProviderById, getDefaultAIProvider, type AIProviderSettings } from '@/models/ProviderSettings';
-import { decryptSecret } from '@/lib/crypto';
 
 export async function getAIProvider(orgId: string, providerId?: string) {
   const provider = providerId 
@@ -17,8 +16,7 @@ export async function getAIProvider(orgId: string, providerId?: string) {
     throw new Error('No AI provider configured');
   }
 
-  const { provider: providerType, defaultModel, baseUrl, config } = provider;
-  const apiKey = resolveApiKey(provider);
+  const { provider: providerType, defaultModel, baseUrl, config, apiKey } = provider;
 
   if (!apiKey) {
     throw new Error('AI provider is missing an API key');
@@ -89,15 +87,25 @@ export async function getAIProvider(orgId: string, providerId?: string) {
       };
     }
 
+    case 'gemini': {
+      const gemini = createGoogleGenerativeAI({ apiKey, baseURL: baseUrl || 'https://generativelanguage.googleapis.com/v1beta' });
+      return {
+        model: gemini(defaultModel || 'gemini-2.0-flash-exp'),
+        config: config || {},
+        providerInfo: { type: providerType, model: defaultModel },
+      };
+    }
+
+    case 'perplexity': {
+      const perplexity = createOpenAI({ apiKey, baseURL: baseUrl || 'https://api.perplexity.ai' });
+      return {
+        model: perplexity(defaultModel || 'sonar-pro'),
+        config: config || {},
+        providerInfo: { type: providerType, model: defaultModel },
+      };
+    }
+
     default:
       throw new Error(`Unsupported AI provider: ${providerType}`);
   }
-}
-
-function resolveApiKey(provider: AIProviderSettings): string {
-  if (provider.apiKeyEncrypted) {
-    return decryptSecret(provider.apiKeyEncrypted) || '';
-  }
-
-  return provider.apiKey || '';
 }

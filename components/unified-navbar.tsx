@@ -73,14 +73,14 @@ export function UnifiedNavbar({ user }: UnifiedNavbarProps) {
   }
 
   return (
-    <nav className="sticky bg-linear-to-t  top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-backdrop-filter:bg-background/60">
+    <nav className="sticky mb-2.5 top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-backdrop-filter:bg-background/60">
       <div className="flex h-16 items-center justify-between px-4 md:px-6 lg:px-8 max-w-full mx-auto">
         {/* Logo */}
         <Link href={isAuthenticated ? "/dashboard" : "/"} className="flex items-center space-x-2">
           <div className="flex lg:hidden items-center justify-center w-8 h-8 rounded-lg bg-primary text-primary-foreground font-bold text-sm">
             L
           </div>
-          <span className="font-semibold font-sans bg-linear-to-t from-amber-200 to-white p-2 border border-gray-100 rounded-2xl text-lg hidden sm:inline-block">LogiGrow</span>
+          <span className="font-semibold font-sans bg-gradient-to-t from-amber-200 to-white p-2 border border-gray-100 rounded-2xl text-lg hidden sm:inline-block">LogiGrow</span>
         </Link>
 
         {/* Desktop Navigation with dropdowns */}
@@ -122,13 +122,8 @@ export function UnifiedNavbar({ user }: UnifiedNavbarProps) {
 
               {/* Dashboard - Only for authenticated users */}
               {isAuthenticated && (
-                <NavigationMenuItem>
-                  <Link href="/dashboard" legacyBehavior passHref>
-                    <NavigationMenuLink className={navigationMenuTriggerStyle()}>
-                      Dashboard
-                    </NavigationMenuLink>
-                  </Link>
-                </NavigationMenuItem>
+                <Link href={"/dashboard"}>dashboard</Link>
+                  
               )}
 
               {/* Leads - For authenticated users */}
@@ -278,11 +273,17 @@ export function UnifiedNavbar({ user }: UnifiedNavbarProps) {
                     Dashboard
                   </Link>
                 </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link href="/settings" className="cursor-pointer">
+                    <Settings className="mr-2 h-4 w-4" />
+                    Settings
+                  </Link>
+                </DropdownMenuItem>
                 {isAdmin && (
                   <DropdownMenuItem asChild>
-                    <Link href="/admin/settings" className="cursor-pointer">
+                    <Link href="/admin/ai-providers" className="cursor-pointer">
                       <Settings className="mr-2 h-4 w-4" />
-                      Settings
+                      Admin Settings
                     </Link>
                   </DropdownMenuItem>
                 )}

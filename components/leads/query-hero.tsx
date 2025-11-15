@@ -23,19 +23,19 @@ export function QueryHero({ query, onQueryChange, onSubmit, isLoading }: QueryHe
     <section className="max-w-4xl mx-auto px-4 sm:px-6 pt-16 sm:pt-20 pb-8 sm:pb-12">
       {/* Badge */}
       <div className="flex justify-center mb-6 sm:mb-8">
-        <div className="inline-flex items-center gap-2 rounded-full border-2 border-indigo-200/80 bg-white/90 backdrop-blur-sm px-4 sm:px-5 py-2 sm:py-2.5 shadow-lg shadow-indigo-500/10">
-          <Sparkles className="h-4 w-4 text-indigo-600" />
-          <span className="text-xs sm:text-sm font-bold text-indigo-700 font-serif">
+        <div className="inline-flex items-center gap-2 rounded-full border border-slate-50 bg-white/80 shadow-sm backdrop-blur px-4 sm:px-5 py-2 sm:py-2.5">
+          <Sparkles className="h-4 w-4 text-amber-400" />
+          <span className="text-xs sm:text-sm font-medium text-slate-700">
             Powered by RocketReach + AI
           </span>
         </div>
       </div>
 
       {/* Heading */}
-      <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold font-serif text-center text-slate-900 mb-4 sm:mb-6 tracking-tight">
+      <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold text-center text-slate-900 mb-4 sm:mb-6 tracking-tight">
         Tell the AI who you need.
         <br />
-        <span className="bg-linear-to-r from-indigo-600 via-purple-600 to-blue-600 bg-clip-text text-transparent">
+        <span className="bg-gradient-to-r font-bold font-sans from-slate-900 via-gray-800 to-gray-700 bg-clip-text text-transparent">
           We&apos;ll find them.
         </span>
       </h1>
@@ -53,7 +53,7 @@ export function QueryHero({ query, onQueryChange, onSubmit, isLoading }: QueryHe
           </label>
           <textarea
             id="lead-query"
-            className="w-full resize-none rounded-xl sm:rounded-2xl border-2 border-slate-200 bg-slate-50/80 px-4 sm:px-5 py-3 sm:py-4 text-base sm:text-lg md:text-xl font-medium text-slate-900 outline-none transition-all duration-200 focus:border-indigo-400 focus:bg-white focus:ring-4 focus:ring-indigo-100/50 focus:shadow-lg"
+            className="w-full resize-none rounded-xl sm:rounded-2xl border-2 border-slate-200 bg-slate-50/80 px-4 sm:px-5 py-3 sm:py-4 text-base sm:text-lg md:text-xl font-medium text-slate-900 outline-none transition-all duration-200 focus:border-amber-400 focus:bg-white focus:ring-4 focus:ring-amber-100/50 focus:shadow-lg"
             rows={3}
             placeholder="e.g., CEOs inside affiliate marketing agencies across the US & UK"
             value={query}
@@ -68,7 +68,7 @@ export function QueryHero({ query, onQueryChange, onSubmit, isLoading }: QueryHe
                 key={example}
                 type="button"
                 onClick={() => onQueryChange(example)}
-                className="rounded-full border-2 border-slate-200 bg-white px-3 py-1.5 text-xs sm:text-sm font-semibold text-slate-600 transition-all duration-200 hover:border-indigo-300 hover:bg-indigo-50 hover:text-indigo-700 hover:shadow-md"
+                className="rounded-full border-2 border-slate-200 bg-white px-3 py-1.5 text-xs sm:text-sm font-semibold text-slate-600 transition-all duration-200 hover:border-amber-300 hover:bg-amber-50 hover:text-amber-700 hover:shadow-md"
               >
                 {example}
               </button>
@@ -78,14 +78,14 @@ export function QueryHero({ query, onQueryChange, onSubmit, isLoading }: QueryHe
           {/* Info + Submit Button */}
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mt-6 pt-4 border-t border-slate-200">
             <p className="text-xs sm:text-sm text-slate-600 flex items-start gap-2 font-medium">
-              <Sparkles className="h-4 w-4 text-indigo-500 mt-0.5 shrink-0" />
+              <Sparkles className="h-4 w-4 text-amber-400 mt-0.5 shrink-0" />
               <span>AI will uncover profiles with verified email + phone and auto-save to your vault.</span>
             </p>
             <Button
               type="submit"
               disabled={isLoading || !query.trim()}
               size="lg"
-              className="w-full sm:w-auto bg-white text-indigo-600 border-2 border-indigo-600 hover:bg-indigo-600 hover:text-white shadow-2xl shadow-indigo-500/20 hover:shadow-2xl hover:shadow-indigo-500/40 transition-all duration-300 px-6 sm:px-8 py-6 text-base sm:text-lg md:text-xl font-bold font-serif rounded-3xl disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full sm:w-auto rounded-4xl font-stretch-expanded font-bold font-sans bg-slate-50 text-gray-800 hover:bg-amber-500 hover:text-white hover:border-2 border-amber-500 transition-all px-6 sm:px-8 py-6 text-base sm:text-lg md:text-xl disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isLoading ? (
                 "Searching..."

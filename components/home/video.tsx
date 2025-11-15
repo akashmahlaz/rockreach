@@ -10,7 +10,7 @@ export async function FeaturedVideo() {
 
   return (
     <section className=" bg-amber-200 w-full flex flex-col justify-center items-center dark:bg-gray-800">
-      <div className="min-h-screen bg-linear-to-b from-amber-200 to-white w-full justify-center">
+      <div className="min-h-screen bg-gradient-to-b from-amber-200 to-white w-full justify-center">
         <Image
           src="/leads.png"
           alt="Featured Photo"

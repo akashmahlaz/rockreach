@@ -1,82 +1,108 @@
 "use client"
-import { useState } from "react"
-import { Paperclip, Bot, Search, Palette, BookOpen, MoreHorizontal, Globe, ChevronRight } from "lucide-react"
+import { useState, type ReactNode, type ReactElement } from "react"
+import { Paperclip, Bot, Search, Palette, BookOpen, MoreHorizontal, Globe, ChevronRight, type LucideIcon } from "lucide-react"
 import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover"
+import { cn } from "@/lib/utils"
 
-export default function ComposerActionsPopover({ children }) {
+type IconRenderer = (props: { className?: string }) => ReactElement
+
+interface ActionItem {
+  icon: IconRenderer
+  label: string
+  action: () => void
+  badge?: string
+}
+
+interface ComposerActionsPopoverProps {
+  children: ReactNode
+}
+
+const wrapLucideIcon = (IconComponent: LucideIcon): IconRenderer => (props) => (
+  <IconComponent {...props} />
+);
+
+function GradientIcon({ className, gradientClass }: { className?: string; gradientClass: string }) {
+  return (
+    <div className={cn("h-4 w-4 rounded flex items-center justify-center", gradientClass, className)}>
+      <div className="h-2 w-2 bg-white rounded-full" />
+    </div>
+  );
+}
+
+const googleDriveIcon: IconRenderer = (props) => (
+  <GradientIcon gradientClass="bg-linear-to-br from-blue-500 to-green-500" {...props} />
+);
+
+const oneDriveIcon: IconRenderer = (props) => (
+  <GradientIcon gradientClass="bg-linear-to-br from-blue-600 to-blue-400" {...props} />
+);
+
+const sharepointIcon: IconRenderer = (props) => (
+  <GradientIcon gradientClass="bg-linear-to-br from-teal-500 to-teal-400" {...props} />
+);
+
+export default function ComposerActionsPopover({ children }: ComposerActionsPopoverProps) {
   const [open, setOpen] = useState(false)
   const [showMore, setShowMore] = useState(false)
 
-  const mainActions = [
+  const mainActions: ActionItem[] = [
     {
-      icon: Paperclip,
+      icon: wrapLucideIcon(Paperclip),
       label: "Add photos & files",
       action: () => console.log("Add photos & files"),
     },
     {
-      icon: Bot,
+      icon: wrapLucideIcon(Bot),
       label: "Agent mode",
       badge: "NEW",
       action: () => console.log("Agent mode"),
     },
     {
-      icon: Search,
+      icon: wrapLucideIcon(Search),
       label: "Deep research",
       action: () => console.log("Deep research"),
     },
     {
-      icon: Palette,
+      icon: wrapLucideIcon(Palette),
       label: "Create image",
       action: () => console.log("Create image"),
     },
     {
-      icon: BookOpen,
+      icon: wrapLucideIcon(BookOpen),
       label: "Study and learn",
       action: () => console.log("Study and learn"),
     },
   ]
 
-  const moreActions = [
+  const moreActions: ActionItem[] = [
     {
-      icon: Globe,
+      icon: wrapLucideIcon(Globe),
       label: "Web search",
       action: () => console.log("Web search"),
     },
     {
-      icon: Palette,
+      icon: wrapLucideIcon(Palette),
       label: "Canvas",
       action: () => console.log("Canvas"),
     },
     {
-      icon: () => (
-        <div className="h-4 w-4 rounded bg-gradient-to-br from-blue-500 to-green-500 flex items-center justify-center">
-          <div className="h-2 w-2 bg-white rounded-full" />
-        </div>
-      ),
+      icon: googleDriveIcon,
       label: "Connect Google Drive",
       action: () => console.log("Connect Google Drive"),
     },
     {
-      icon: () => (
-        <div className="h-4 w-4 rounded bg-gradient-to-br from-blue-600 to-blue-400 flex items-center justify-center">
-          <div className="h-2 w-2 bg-white rounded-full" />
-        </div>
-      ),
+      icon: oneDriveIcon,
       label: "Connect OneDrive",
       action: () => console.log("Connect OneDrive"),
     },
     {
-      icon: () => (
-        <div className="h-4 w-4 rounded bg-gradient-to-br from-teal-500 to-teal-400 flex items-center justify-center">
-          <div className="h-2 w-2 bg-white rounded-full" />
-        </div>
-      ),
+      icon: sharepointIcon,
       label: "Connect Sharepoint",
       action: () => console.log("Connect Sharepoint"),
     },
   ]
 
-  const handleAction = (action) => {
+  const handleAction = (action: ActionItem["action"]) => {
     action()
     setOpen(false)
     setShowMore(false)
@@ -86,7 +112,7 @@ export default function ComposerActionsPopover({ children }) {
     setShowMore(true)
   }
 
-  const handleOpenChange = (newOpen) => {
+  const handleOpenChange = (newOpen: boolean) => {
     setOpen(newOpen)
     if (!newOpen) {
       setShowMore(false)
@@ -172,7 +198,7 @@ export default function ComposerActionsPopover({ children }) {
                       onClick={() => handleAction(action.action)}
                       className="flex items-center gap-3 w-full p-2 text-sm text-left hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg"
                     >
-                      {typeof IconComponent === "function" ? <IconComponent /> : <IconComponent className="h-4 w-4" />}
+                      <IconComponent className="h-4 w-4" />
                       <span>{action.label}</span>
                     </button>
                   )

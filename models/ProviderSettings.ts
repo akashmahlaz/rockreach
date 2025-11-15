@@ -1,14 +1,12 @@
 import { getDb, Collections } from '@/lib/db';
-import { encryptSecret, type EncryptedData } from '@/lib/crypto';
+import { ObjectId } from 'mongodb';
 
 export interface AIProviderSettings {
   _id?: string;
   organizationId: string;
-  provider: 'openai' | 'anthropic' | 'google' | 'mistral' | 'groq' | 'deepseek' | 'cohere' | 'perplexity';
+  provider: 'openai' | 'anthropic' | 'google' | 'mistral' | 'groq' | 'deepseek' | 'cohere' | 'perplexity' | 'gemini';
   name: string; // User-friendly name like "Production OpenAI"
-  apiKeyEncrypted?: EncryptedData; // Encrypted API key blob
-  // Legacy support for old plaintext records — should be undefined for new inserts
-  apiKey?: string;
+  apiKey: string; // API key stored in plain text
   baseUrl?: string; // Optional custom endpoint
   defaultModel: string; // e.g., "gpt-4o", "claude-3-5-sonnet-20241022"
   isEnabled: boolean;
@@ -56,7 +54,7 @@ export async function getAIProviders(orgId: string) {
 
   return providers.map(p => ({
     ...p,
-    hasCredentials: Boolean(p.apiKeyEncrypted || p.apiKey),
+    hasCredentials: Boolean(p.apiKey),
   }));
 }
 
@@ -100,17 +98,15 @@ export async function upsertAIProvider(
     );
   }
 
-  const { apiKey, apiKeyEncrypted: _ignore, ...rest } = data;
-  void _ignore;
-
   const updateData: Partial<AIProviderSettings> = {
-    ...rest,
+    ...data,
     organizationId: orgId,
     updatedAt: now,
   };
 
-  if (typeof apiKey === 'string' && apiKey.trim().length > 0) {
-    updateData.apiKeyEncrypted = encryptSecret(apiKey.trim());
+  // Ensure API key is trimmed if provided
+  if (typeof data.apiKey === 'string') {
+    updateData.apiKey = data.apiKey.trim();
   }
 
   if (data._id) {
@@ -136,9 +132,11 @@ export async function upsertAIProvider(
 
 export async function deleteAIProvider(orgId: string, providerId: string) {
   const db = await getDb();
+  const objectId = new ObjectId(providerId);
+  
   const provider = await db
     .collection<AIProviderSettings>(Collections.AI_PROVIDERS)
-    .findOne({ _id: providerId, organizationId: orgId });
+    .findOne({ _id: objectId as unknown as string, organizationId: orgId });
 
   if (provider?.isDefault) {
     throw new Error('Cannot delete default provider. Set another provider as default first.');
@@ -146,7 +144,7 @@ export async function deleteAIProvider(orgId: string, providerId: string) {
 
   const result = await db
     .collection<AIProviderSettings>(Collections.AI_PROVIDERS)
-    .deleteOne({ _id: providerId, organizationId: orgId });
+    .deleteOne({ _id: objectId as unknown as string, organizationId: orgId });
 
   return result.deletedCount > 0;
 }

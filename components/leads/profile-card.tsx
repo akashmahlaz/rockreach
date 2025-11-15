@@ -43,7 +43,7 @@ export function ProfileCard({ profile }: ProfileCardProps) {
           {profile.tags.map((tag) => (
             <Badge
               key={tag}
-              className="rounded-full bg-linear-to-r from-indigo-100 to-purple-100 border border-indigo-200 px-3 py-1 text-sm font-semibold text-indigo-700"
+              className="rounded-full bg-gradient-to-r from-amber-100 to-amber-50 border border-amber-200 px-3 py-1 text-sm font-semibold text-amber-700"
             >
               {tag}
             </Badge>
@@ -101,7 +101,7 @@ export function ProfileCard({ profile }: ProfileCardProps) {
         </div>
 
         {/* AI Insights */}
-        <div className="rounded-xl sm:rounded-2xl border-2 border-indigo-100 bg-linear-to-br from-indigo-50 to-purple-50 p-4 sm:p-5">
+        <div className="rounded-xl sm:rounded-2xl border-2 border-amber-100 bg-gradient-to-br from-amber-50 to-amber-50/50 p-4 sm:p-5">
           <div className="flex items-center gap-2 mb-3">
             <Lightbulb className="h-5 w-5 text-indigo-600" />
             <p className="text-sm font-bold uppercase tracking-wide text-indigo-900">

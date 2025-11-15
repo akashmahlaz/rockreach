@@ -14,28 +14,31 @@ type Tone = (typeof TONES)[number];
 type Depth = (typeof DEPTHS)[number];
 
 interface MessagingAssistantProps {
-  selectedProfileName?: string;
-  onGenerate: (tone: Tone, depth: Depth) => void;
-  onSend: () => void;
-  messageDraft: string;
-  isGenerating: boolean;
+  profileName: string;
+  onGenerate: (tone: Tone, depth: Depth) => Promise<string>;
+  onSend: (message: string) => Promise<void>;
 }
 
-export function MessagingAssistant({
-  selectedProfileName,
-  onGenerate,
-  onSend,
-  messageDraft,
-  isGenerating,
-}: MessagingAssistantProps) {
+export function MessagingAssistant({ profileName, onGenerate, onSend }: MessagingAssistantProps) {
   const [tone, setTone] = useState<Tone>("professional");
   const [depth, setDepth] = useState<Depth>("Medium");
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [isSending, setIsSending] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
-  const [editedMessage, setEditedMessage] = useState(messageDraft);
+  const [messageDraft, setMessageDraft] = useState("");
+  const [editedMessage, setEditedMessage] = useState("");
 
-  const handleGenerate = () => {
-    onGenerate(tone, depth);
-    setIsEditing(false);
+  const handleGenerate = async () => {
+    if (!profileName) return;
+    try {
+      setIsGenerating(true);
+      const draft = await onGenerate(tone, depth);
+      setMessageDraft(draft);
+      setEditedMessage(draft);
+      setIsEditing(false);
+    } finally {
+      setIsGenerating(false);
+    }
   };
 
   const handleEdit = () => {
@@ -44,12 +47,22 @@ export function MessagingAssistant({
   };
 
   const handleSave = () => {
+    setMessageDraft(editedMessage);
     setIsEditing(false);
-    // You can add logic here to update the messageDraft in the parent component
+  };
+
+  const handleSend = async () => {
+    if (!messageDraft) return;
+    try {
+      setIsSending(true);
+      await onSend(messageDraft);
+    } finally {
+      setIsSending(false);
+    }
   };
 
   return (
-    <Card className="rounded-2xl sm:rounded-3xl border-2 border-slate-200 bg-gradient-to-br from-white via-white to-indigo-50/30 backdrop-blur-sm shadow-2xl">
+    <Card className="rounded-2xl sm:rounded-3xl border-2 border-slate-200 bg-gradient-to-br from-white via-white to-amber-50/30 backdrop-blur-sm shadow-2xl">
       <CardHeader>
         <div className="flex items-center gap-2 mb-2">
           <Sparkles className="h-5 w-5 text-indigo-600" />
@@ -118,7 +131,7 @@ export function MessagingAssistant({
         <Button
           type="button"
           onClick={handleGenerate}
-          disabled={isGenerating || !selectedProfileName}
+          disabled={isGenerating || !profileName}
           className="w-full bg-slate-900 hover:bg-slate-800 text-white shadow-lg shadow-slate-900/20 py-6 text-base font-semibold rounded-xl sm:rounded-2xl transition-all disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {isGenerating ? (
@@ -149,10 +162,11 @@ export function MessagingAssistant({
                 Edit
               </Button>
               <Button
-                onClick={onSend}
-                className="flex-1 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white shadow-lg shadow-indigo-500/30 rounded-xl"
+                onClick={handleSend}
+                disabled={isSending}
+                className="flex-1 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white shadow-lg shadow-amber-500/30 rounded-xl disabled:opacity-60"
               >
-                Send via Resend
+                {isSending ? "Sending..." : "Send via Resend"}
               </Button>
             </div>
           </div>

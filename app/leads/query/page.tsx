@@ -147,7 +147,7 @@ export default function LeadQueryPage() {
   }
 
   return (
-    <main className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-indigo-50/30">
+    <main className="min-h-screen bg-gradient-to-br from-amber-50 via-white to-amber-50/30">
       {/* Hero Section */}
       <QueryHero
         query={query}
@@ -160,8 +160,8 @@ export default function LeadQueryPage() {
       {status !== "idle" && (
         <section className="max-w-5xl mx-auto px-4 sm:px-6 pb-6">
           <AIThinkingStepper
+            status={status}
             currentStep={currentStep}
-            isComplete={status === "results"}
           />
         </section>
       )}

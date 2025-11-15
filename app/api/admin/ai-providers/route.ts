@@ -24,9 +24,9 @@ export async function GET() {
     const providers = await getAIProviders(orgId);
 
     // Don't send secrets to the client
-    const safeProviders = providers.map(({ apiKey, apiKeyEncrypted, ...rest }) => ({
+    const safeProviders = providers.map(({ apiKey, ...rest }) => ({
       ...rest,
-      hasCredentials: Boolean(apiKeyEncrypted || apiKey || rest.hasCredentials),
+      hasCredentials: Boolean(apiKey || rest.hasCredentials),
     }));
 
     return NextResponse.json({ providers: safeProviders });
@@ -113,7 +113,6 @@ export async function POST(req: NextRequest) {
       ? {
           ...result,
           apiKey: undefined,
-          apiKeyEncrypted: undefined,
         }
       : null;
 
