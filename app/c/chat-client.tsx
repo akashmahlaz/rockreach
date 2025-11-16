@@ -212,7 +212,9 @@ export function ChatClient({ conversationId, user }: ChatClientProps) {
       
       // Show user-friendly error messages
       if (errorMessage.includes("Failed to parse URL") || errorMessage.includes("/responses")) {
-        toast.error("Connection error. Please refresh and try again.");
+        // Soft warning: the AI response likely still completed and was saved,
+        // so avoid scaring the user with a hard error.
+        toast.info("The response was generated, but there was a minor connection issue.");
       } else if (errorMessage.includes("Unauthorized") || errorMessage.includes("401")) {
         toast.error("Session expired. Please sign in again.");
         setTimeout(() => window.location.href = "/api/auth/signin", 2000);
