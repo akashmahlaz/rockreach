@@ -122,6 +122,7 @@ export function ChatClient({ conversationId, user }: ChatClientProps) {
   const [loadingStats, setLoadingStats] = useState(false);
   // Track conversation switching for loading overlay
   const [isSwitchingConversation, setIsSwitchingConversation] = useState(false);
+  const [isConversationsLoading, setIsConversationsLoading] = useState(true);
 
   // Local input state for the textarea
   const [localInput, setLocalInput] = useState("");
@@ -141,6 +142,7 @@ export function ChatClient({ conversationId, user }: ChatClientProps) {
         ? `${window.location.origin}/api/assistant/stream`
         : "/api/assistant/stream",
       body: () => ({
+        conversationId: activeConvId, // Send conversationId so stream can load from MongoDB
         userMetadata: {
           name: user.name,
           email: user.email,
@@ -148,43 +150,58 @@ export function ChatClient({ conversationId, user }: ChatClientProps) {
         },
       }),
     }),
-    onFinish: async ({ message, messages: allMessages }) => {
-      console.log('[useChat] onFinish:', { message, messageCount: allMessages.length });
+    onFinish: async ({ messages: allMessages }) => {
+      console.log('[onFinish] AI response complete:', { 
+        messageCount: allMessages.length,
+        lastMessageRole: allMessages[allMessages.length - 1]?.role,
+        conversationId: activeConvId,
+      });
       
       if (activeConvId) {
-        // Get the current conversation
-        const currentConv = conversations.find((c) => c.id === activeConvId);
+        // Format messages with proper structure for MongoDB
+        const formattedMessages = allMessages.map(msg => ({
+          id: msg.id,
+          role: msg.role,
+          content: msg.parts?.find(p => 'text' in p)?.text || '',
+          parts: msg.parts || [],
+          createdAt: new Date(),
+        }));
         
-        if (currentConv) {
-          // Use the complete messages array from the callback (includes the new message)
-          const updatedMessages = allMessages;
-          
-          const updatedConv = { 
-            ...currentConv, 
-            messages: updatedMessages,
-            metadata: {
-              ...currentConv.metadata,
-              lastUpdated: new Date().toISOString(),
-            }
-          };
-          
-          console.log('[onFinish] Saving to MongoDB:', {
-            convId: activeConvId,
-            messageCount: updatedMessages.length,
+        console.log('[onFinish] Saving complete conversation to MongoDB:', {
+          convId: activeConvId,
+          messageCount: formattedMessages.length,
+          messages: formattedMessages.map(m => ({
+            role: m.role,
+            contentLength: m.content.length,
+          })),
+        });
+        
+        // Save complete conversation to MongoDB
+        try {
+          const response = await fetch('/api/assistant/conversations', {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              id: activeConvId,
+              messages: formattedMessages,
+            }),
           });
           
-          // Save to MongoDB immediately
-          try {
-            await saveConversation(updatedConv);
-            console.log('[onFinish] Successfully saved to MongoDB');
-          } catch (error) {
-            console.error('[onFinish] Failed to save:', error);
+          if (!response.ok) {
+            throw new Error(`Failed to save: ${response.status}`);
           }
           
-          // Update local state
+          console.log('[onFinish] ✓ Saved to MongoDB successfully');
+          
+          // Reload conversations to update sidebar with latest data (title, message count)
+          await fetchConversations();
+          
+          // Update local state to reflect what's in DB
           setConversations((prev) =>
-            prev.map((c) => (c.id === activeConvId ? updatedConv : c))
+            prev.map((c) => (c.id === activeConvId ? { ...c, messages: formattedMessages } : c))
           );
+        } catch (error) {
+          console.error('[onFinish] ✗ Failed to save:', error);
         }
       }
       setThinkingSteps([]);
@@ -250,16 +267,25 @@ export function ChatClient({ conversationId, user }: ChatClientProps) {
             console.log('[Conversation Switch] Loaded from DB:', {
               messageCount: fullConversation.messages?.length || 0,
               title: fullConversation.title,
+              messages: fullConversation.messages,
             });
-            setMessages(fullConversation.messages || []);
+            
+            // Ensure messages have the correct structure for AI SDK
+            const formattedMessages = (fullConversation.messages || []).map((msg: UIMessage) => ({
+              ...msg,
+              // Ensure parts array exists - UI SDK needs parts not content
+              parts: msg.parts && msg.parts.length > 0 ? msg.parts : [{ type: 'text', text: '' }],
+            }));
+            
+            setMessages(formattedMessages);
             
             // Update conversations list if this conversation isn't in it yet
             setConversations((prev) => {
               const exists = prev.find(c => c.id === activeConvId);
               if (!exists) {
-                return [fullConversation, ...prev];
+                return [{ ...fullConversation, messages: formattedMessages }, ...prev];
               }
-              return prev.map(c => c.id === activeConvId ? fullConversation : c);
+              return prev.map(c => c.id === activeConvId ? { ...fullConversation, messages: formattedMessages } : c);
             });
           } else {
             // Fallback to cached data if API fails
@@ -386,6 +412,7 @@ export function ChatClient({ conversationId, user }: ChatClientProps) {
 
   // Fetch conversations from MongoDB
   const fetchConversations = async () => {
+    setIsConversationsLoading(true);
     try {
       const res = await fetch('/api/assistant/conversations');
       if (res.ok) {
@@ -397,27 +424,12 @@ export function ChatClient({ conversationId, user }: ChatClientProps) {
       }
     } catch (error) {
       console.error('Error fetching conversations:', error);
+    } finally {
+      setIsConversationsLoading(false);
     }
   };
 
   // Save conversation to MongoDB
-  const saveConversation = async (conversation: Conversation) => {
-    try {
-      await fetch('/api/assistant/conversations', {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          id: conversation.id,
-          title: conversation.title,
-          messages: conversation.messages,
-          metadata: conversation.metadata,
-        }),
-      });
-    } catch (error) {
-      console.error('Error saving conversation:', error);
-    }
-  };
-
   // Load usage stats on mount and when period changes
   useEffect(() => {
     fetchUsageStats(usagePeriod);
@@ -568,7 +580,7 @@ export function ChatClient({ conversationId, user }: ChatClientProps) {
         });
     }
 
-    // Send the message
+    // Send the message to AI - onFinish will save both user and assistant messages
     sendMessage({ text: input });
   };
 
@@ -642,6 +654,21 @@ export function ChatClient({ conversationId, user }: ChatClientProps) {
           <div className="flex-1 min-h-0 overflow-hidden">
             <ScrollArea className="h-full px-3 py-2">
                 <div className="space-y-1.5 pb-2">
+                  {isConversationsLoading ? (
+                    <div className="space-y-1.5">
+                      {Array.from({ length: 5 }).map((_, idx) => (
+                        <div
+                          key={`skeleton-${idx}`}
+                          className="h-[60px] animate-pulse rounded-lg bg-slate-100"
+                        />
+                      ))}
+                    </div>
+                  ) : conversations.length === 0 ? (
+                    <div className="text-center text-sm text-slate-500 py-6">
+                      No conversations yet.
+                    </div>
+                  ) : (
+                    <>
                   {conversations.map((conv) => (
               <div
                 key={conv.id}
@@ -761,6 +788,8 @@ export function ChatClient({ conversationId, user }: ChatClientProps) {
                 )}
               </div>
             ))}
+                </>
+              )}
                 </div>
             </ScrollArea>
           </div>

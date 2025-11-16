@@ -18,8 +18,8 @@ export async function GET(req: Request) {
 
   const { searchParams } = new URL(req.url);
   const conversationId = searchParams.get("id");
-  const orgId = session.user.orgId || "";
-  const userId = session.user.id || "";
+  const userId = session.user.id || session.user.email || "";
+  const orgId = session.user.orgId || session.user.id || session.user.email || "";
 
   try {
     // Get single conversation
@@ -37,8 +37,15 @@ export async function GET(req: Request) {
       }
 
       if (!conversation) {
+        console.log('[GET Conversation] Not found:', { conversationId, userId });
         return NextResponse.json({ error: "Conversation not found" }, { status: 404 });
       }
+
+      console.log('[GET Conversation] Found:', {
+        id: conversation.id,
+        title: conversation.title,
+        messageCount: conversation.messages?.length || 0,
+      });
 
       return NextResponse.json(conversation);
     }
@@ -69,8 +76,8 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const orgId = session.user.orgId || "";
-  const userId = session.user.id || "";
+  const orgId = session.user.orgId || session.user.id || session.user.email || "";
+  const userId = session.user.id || session.user.email || "";
 
   try {
     const body = await req.json();
@@ -116,7 +123,7 @@ export async function PATCH(req: Request) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const userId = session.user.id || "";
+  const userId = session.user.id || session.user.email || "";
 
   try {
     const body = await req.json();
@@ -131,6 +138,7 @@ export async function PATCH(req: Request) {
       userId,
       hasMessages: !!update.messages,
       messageCount: update.messages?.length || 0,
+      updateKeys: Object.keys(update),
     });
 
     const success = await updateConversation(id, userId, update);
@@ -165,7 +173,7 @@ export async function DELETE(req: Request) {
 
   const { searchParams } = new URL(req.url);
   const id = searchParams.get("id");
-  const userId = session.user.id || "";
+  const userId = session.user.id || session.user.email || "";
 
   if (!id) {
     return NextResponse.json({ error: "Conversation ID required" }, { status: 400 });

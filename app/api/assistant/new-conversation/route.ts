@@ -11,7 +11,7 @@ export async function GET(req: NextRequest) {
   try {
     const session = await auth();
     
-    if (!session?.user?.email) {
+    if (!session?.user) {
       return NextResponse.redirect(new URL("/api/auth/signin", req.url));
     }
 
@@ -20,8 +20,8 @@ export async function GET(req: NextRequest) {
     
     await createConversation({
       id: conversationId,
-      userId: session.user.email,
-      orgId: session.user.email, // Using email as orgId for now
+      userId: session.user.id || session.user.email || "",
+      orgId: session.user.orgId || session.user.email || "",
       title: "New chat",
       messages: [],
     });

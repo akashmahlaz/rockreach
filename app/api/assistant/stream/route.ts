@@ -17,7 +17,7 @@ export async function POST(req: Request) {
   }
 
   const orgId = session.user.orgId || "";
-  const userId = session.user.id || "";
+  const userId = session.user.id || session.user.email || "";
   const startedAt = Date.now();
 
   // Rate limiting: 20 requests per minute per user
@@ -33,6 +33,7 @@ export async function POST(req: Request) {
   try {
     const body = (await req.json()) as {
       messages: UIMessage[];
+      conversationId?: string;
       temperature?: number;
       userMetadata?: Record<string, unknown>;
     };
@@ -47,6 +48,59 @@ export async function POST(req: Request) {
       );
     }
 
+    // Load full conversation history from MongoDB if conversationId is provided
+    // This ensures AI always has complete context even if client state is stale
+    let messagesToSend = body.messages;
+    if (body.conversationId) {
+      console.log('[Stream] Loading conversation from MongoDB:', body.conversationId);
+      try {
+        const { getConversation } = await import('@/models/Conversation');
+        const conversation = await getConversation(body.conversationId, userId);
+        
+        if (conversation && conversation.messages && conversation.messages.length > 0) {
+          // MongoDB has existing messages - merge with new message from client
+          const dbMessages = conversation.messages.map(msg => ({
+            id: msg.id,
+            role: msg.role,
+            parts: msg.parts || [{ type: 'text', text: msg.content || '' }],
+            createdAt: msg.createdAt,
+          })) as UIMessage[];
+          
+          // Get the last message from client (the new user message)
+          const lastClientMessage = body.messages[body.messages.length - 1];
+          
+          // Check if this is a new message (not in DB yet)
+          const isNewMessage = !dbMessages.some(m => m.id === lastClientMessage.id);
+          
+          if (isNewMessage) {
+            // Append new message to DB messages
+            messagesToSend = [...dbMessages, lastClientMessage];
+            console.log('[Stream] Merged DB + new message:', {
+              conversationId: body.conversationId,
+              dbMessageCount: dbMessages.length,
+              totalMessages: messagesToSend.length,
+              newMessage: lastClientMessage.role,
+            });
+          } else {
+            // All messages already in DB, use DB as source of truth
+            messagesToSend = dbMessages;
+            console.log('[Stream] Using DB messages only:', {
+              conversationId: body.conversationId,
+              messageCount: messagesToSend.length,
+            });
+          }
+        } else {
+          console.log('[Stream] No messages in DB, using client messages:', {
+            conversationId: body.conversationId,
+            clientMessageCount: body.messages.length,
+          });
+        }
+      } catch (error) {
+        console.error('[Stream] Error loading conversation from DB:', error);
+        // Fallback to client messages on error
+      }
+    }
+
     // Get the default AI model configured by admin
     const model = await getDefaultModel(orgId);
     const provider = "assistant"; // Generic name for logging
@@ -54,7 +108,7 @@ export async function POST(req: Request) {
     const result = streamText({
       model,
       system: systemPrompt,
-      messages: convertToModelMessages(body.messages),
+      messages: convertToModelMessages(messagesToSend),
       tools,
       stopWhen: stepCountIs(5), // Enable multi-step: continue for up to 5 steps after tool calls
       // By default, tools will execute and continue - no maxSteps needed
