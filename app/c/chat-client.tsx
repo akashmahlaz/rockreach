@@ -931,8 +931,8 @@ export function ChatClient({ conversationId, user }: ChatClientProps) {
 
               <LoadingOverlay isLoading={isLoading} thinkingSteps={thinkingSteps} onStop={stop} />
 
-              {/* Error State */}
-              {error && (
+              {/* Error State - only show for real failures, not SDK /responses quirks */}
+              {error && !error.message?.includes("/responses") && !error.message?.includes("Failed to parse URL") && (
                 <div className="mt-6 rounded-lg border border-red-200 bg-red-50/50 p-4">
                   <div className="flex items-center justify-between">
                     <span className="text-sm text-red-900">An error occurred. Please try again.</span>
