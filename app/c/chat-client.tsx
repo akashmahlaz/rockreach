@@ -32,6 +32,7 @@ import Link from "next/link";
 import { MessageBubble } from "@/components/c/message-bubble";
 import { EmptyState } from "@/components/c/empty-state";
 import { LoadingOverlay } from "@/components/c/loading-overlay";
+import { fetchWithRetry } from "@/lib/fetch-with-retry";
 
 interface ChatClientProps {
   conversationId: string | null;
@@ -121,11 +122,13 @@ export function ChatClient({ conversationId, user }: ChatClientProps) {
   const [loadingStats, setLoadingStats] = useState(false);
   // Queue first message to avoid race when creating a new conversation
   const [pendingSend, setPendingSend] = useState<string | null>(null);
+  // Track conversation switching for loading overlay
+  const [isSwitchingConversation, setIsSwitchingConversation] = useState(false);
 
   // Local input state for the textarea
   const [localInput, setLocalInput] = useState("");
 
-  // Use the latest useChat hook
+  // Use the latest useChat hook with proper absolute URL for production
   const {
     messages,
     sendMessage,
@@ -136,7 +139,9 @@ export function ChatClient({ conversationId, user }: ChatClientProps) {
   } = useChat({
     id: activeConvId || undefined,
     transport: new DefaultChatTransport({
-      api: "/api/assistant/stream",
+      api: typeof window !== 'undefined' && window.location.origin 
+        ? `${window.location.origin}/api/assistant/stream`
+        : "/api/assistant/stream",
       body: () => ({
         userMetadata: {
           name: user.name,
@@ -191,7 +196,20 @@ export function ChatClient({ conversationId, user }: ChatClientProps) {
     },
     onError: (error) => {
       console.error("Chat error:", error);
-      toast.error(error?.message || "An error occurred while processing your request");
+      const errorMessage = error?.message || "An error occurred while processing your request";
+      
+      // Show user-friendly error messages
+      if (errorMessage.includes("Failed to parse URL") || errorMessage.includes("/responses")) {
+        toast.error("Connection error. Please refresh and try again.");
+      } else if (errorMessage.includes("Unauthorized") || errorMessage.includes("401")) {
+        toast.error("Session expired. Please sign in again.");
+        setTimeout(() => window.location.href = "/api/auth/signin", 2000);
+      } else if (errorMessage.includes("rate limit") || errorMessage.includes("429")) {
+        toast.error("Too many requests. Please wait a moment and try again.");
+      } else {
+        toast.error(errorMessage);
+      }
+      
       setThinkingSteps([]);
     },
   });
@@ -224,9 +242,14 @@ export function ChatClient({ conversationId, user }: ChatClientProps) {
           convId: activeConvId,
         });
         
+        setIsSwitchingConversation(true);
+        
         try {
           // Fetch full conversation data from MongoDB with all messages
-          const res = await fetch(`/api/assistant/conversations?id=${activeConvId}`);
+          const res = await fetchWithRetry(`/api/assistant/conversations?id=${activeConvId}`, {
+            maxRetries: 2,
+            baseDelay: 500,
+          });
           if (res.ok) {
             const fullConversation = await res.json();
             console.log('[Conversation Switch] Loaded from DB:', {
@@ -256,10 +279,13 @@ export function ChatClient({ conversationId, user }: ChatClientProps) {
           if (activeConv) {
             setMessages(activeConv.messages || []);
           }
+        } finally {
+          setIsSwitchingConversation(false);
         }
       } else {
         // No active conversation - clear messages
         setMessages([]);
+        setIsSwitchingConversation(false);
       }
     };
     
@@ -888,7 +914,17 @@ export function ChatClient({ conversationId, user }: ChatClientProps) {
       </div>
 
       {/* Main Content */}
-      <div className="flex flex-1 flex-col min-w-0">
+      <div className="flex flex-1 flex-col min-w-0 relative">
+        {/* Conversation Switching Overlay */}
+        {isSwitchingConversation && (
+          <div className="absolute inset-0 bg-white/80 backdrop-blur-sm z-10 flex items-center justify-center">
+            <div className="flex flex-col items-center gap-3">
+              <Loader2 className="h-8 w-8 animate-spin text-amber-500" />
+              <span className="text-sm text-slate-600">Loading conversation...</span>
+            </div>
+          </div>
+        )}
+        
         {/* Messages */}
         <div className="flex-1 overflow-hidden">
           <div ref={scrollRef} className="h-full overflow-y-auto">

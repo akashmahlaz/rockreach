@@ -120,7 +120,7 @@ export function AssistantClient({ user }: AssistantClientProps) {
   // Local input state for the textarea
   const [localInput, setLocalInput] = useState("");
 
-  // Use the latest useChat hook
+  // Use the latest useChat hook with proper absolute URL for production
   const {
     messages,
     sendMessage,
@@ -131,7 +131,9 @@ export function AssistantClient({ user }: AssistantClientProps) {
   } = useChat({
     id: activeConvId || undefined,
     transport: new DefaultChatTransport({
-      api: "/api/assistant/stream",
+      api: typeof window !== 'undefined' && window.location.origin 
+        ? `${window.location.origin}/api/assistant/stream`
+        : "/api/assistant/stream",
       body: () => ({
         userMetadata: {
           name: user.name,
