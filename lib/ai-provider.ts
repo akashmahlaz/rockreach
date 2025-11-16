@@ -105,16 +105,18 @@ export async function getDefaultModel(orgId: string) {
       isEnabled: defaultProvider?.isEnabled,
       provider: defaultProvider?.provider,
       hasApiKey: !!defaultProvider?.apiKey,
+      apiKeyLength: defaultProvider?.apiKey?.length,
       defaultModel: defaultProvider?.defaultModel,
+      isDefault: defaultProvider?.isDefault,
     });
     
     if (defaultProvider && defaultProvider.isEnabled && defaultProvider.apiKey) {
-      console.log('[AI Provider] Using provider:', defaultProvider.provider);
+      console.log('[AI Provider] ✅ Using DB provider:', defaultProvider.provider, 'model:', defaultProvider.defaultModel);
       return getModelInstance(defaultProvider);
     }
     
     // Fallback to environment variables if no provider configured
-    console.warn('[AI Provider] No default AI provider configured, falling back to environment variables');
+    console.warn('[AI Provider] ⚠️ No default AI provider in DB, falling back to environment variables');
     console.log('[AI Provider] Available env vars:', {
       hasOpenAI: !!process.env.OPENAI_API_KEY,
       hasAnthropic: !!process.env.ANTHROPIC_API_KEY,

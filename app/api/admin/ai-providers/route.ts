@@ -80,6 +80,17 @@ export async function POST(req: NextRequest) {
 
     const userId = session.user.id!;
 
+    // Smart default: if no default provider exists and this is a new provider, make it default
+    let shouldBeDefault = isDefault ?? false;
+    if (!_id && !shouldBeDefault) {
+      const existingProviders = await getAIProviders();
+      const hasDefault = existingProviders.some(p => p.isDefault && p.isEnabled);
+      if (!hasDefault) {
+        shouldBeDefault = true;
+        console.log('🎯 Auto-setting first provider as default');
+      }
+    }
+
     // Save provider (works for all users automatically)
     const result = await upsertAIProvider('global', userId, {
       _id,
@@ -89,7 +100,7 @@ export async function POST(req: NextRequest) {
       baseUrl,
       defaultModel,
       isEnabled: isEnabled ?? true,
-      isDefault: isDefault ?? false,
+      isDefault: shouldBeDefault,
       config,
     });
 
