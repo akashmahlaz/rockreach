@@ -127,8 +127,16 @@ export function ChatClient({ conversationId, user }: ChatClientProps) {
   // Local input state for the textarea
   const [localInput, setLocalInput] = useState("");
 
-  // Use useChat hook from @ai-sdk/react v2.0.92
-  // This version sends messages to /api/chat by default, so we need to handle routing
+  // Store activeConvId in cookie so API route can access it
+  useEffect(() => {
+    if (activeConvId) {
+      document.cookie = `active-conversation-id=${activeConvId}; path=/; max-age=3600; SameSite=Lax`;
+    } else {
+      document.cookie = `active-conversation-id=; path=/; max-age=0; SameSite=Lax`;
+    }
+  }, [activeConvId]);
+
+  // Use useChat hook - automatically POSTs to /api/chat with messages array
   const {
     messages,
     sendMessage,

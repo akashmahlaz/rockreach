@@ -31,12 +31,24 @@ export async function POST(req: Request) {
   }
 
   try {
+    // useChat from @ai-sdk/react only sends { messages: UIMessage[] }
+    // It doesn't support custom body fields in v2.0.92
     const body = (await req.json()) as {
       messages: UIMessage[];
-      conversationId?: string;
-      temperature?: number;
-      userMetadata?: Record<string, unknown>;
     };
+    
+    // Extract conversationId from cookie (set by client)
+    const cookies = req.headers.get("cookie") || "";
+    const conversationId = cookies
+      .split(";")
+      .find(c => c.trim().startsWith("active-conversation-id="))
+      ?.split("=")[1];
+      
+    console.log('[Chat API] Request received:', {
+      conversationId,
+      messageCount: body.messages.length,
+      lastMessageRole: body.messages[body.messages.length - 1]?.role,
+    });
 
     const tools = createAssistantTools({ orgId, userId: session.user.id });
     const systemPrompt = buildSystemPrompt(session.user.name);
@@ -51,11 +63,11 @@ export async function POST(req: Request) {
     // Load full conversation history from MongoDB if conversationId is provided
     // This ensures AI always has complete context even if client state is stale
     let messagesToSend = body.messages;
-    if (body.conversationId) {
-      console.log('[Stream] Loading conversation from MongoDB:', body.conversationId);
+    if (conversationId) {
+      console.log('[Stream] Loading conversation from MongoDB:', conversationId);
       try {
         const { getConversation } = await import('@/models/Conversation');
-        const conversation = await getConversation(body.conversationId, userId);
+        const conversation = await getConversation(conversationId, userId);
         
         if (conversation && conversation.messages && conversation.messages.length > 0) {
           // MongoDB has existing messages - merge with new message from client
@@ -76,7 +88,7 @@ export async function POST(req: Request) {
             // Append new message to DB messages
             messagesToSend = [...dbMessages, lastClientMessage];
             console.log('[Stream] Merged DB + new message:', {
-              conversationId: body.conversationId,
+              conversationId: conversationId,
               dbMessageCount: dbMessages.length,
               totalMessages: messagesToSend.length,
               newMessage: lastClientMessage.role,
@@ -85,13 +97,13 @@ export async function POST(req: Request) {
             // All messages already in DB, use DB as source of truth
             messagesToSend = dbMessages;
             console.log('[Stream] Using DB messages only:', {
-              conversationId: body.conversationId,
+              conversationId: conversationId,
               messageCount: messagesToSend.length,
             });
           }
         } else {
           console.log('[Stream] No messages in DB, using client messages:', {
-            conversationId: body.conversationId,
+            conversationId: conversationId,
             clientMessageCount: body.messages.length,
           });
         }
