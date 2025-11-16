@@ -42,9 +42,9 @@ export async function GET(req: Request) {
       }
 
       console.log('[GET Conversation] Found:', {
-        id: conversation.id,
-        title: conversation.title,
-        messageCount: conversation.messages?.length || 0,
+        id: (conversation as any).id,
+        title: (conversation as any).title,
+        messageCount: (conversation as any).messages?.length || 0,
       });
 
       return NextResponse.json(conversation);
