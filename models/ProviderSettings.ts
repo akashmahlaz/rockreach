@@ -64,10 +64,7 @@ export async function getDefaultAIProvider(orgId: string) {
     .collection<AIProviderSettings>(Collections.AI_PROVIDERS)
     .findOne({ organizationId: orgId, isDefault: true, isEnabled: true });
 
-  if (!provider) {
-    throw new Error('No default AI provider configured');
-  }
-
+  // Return null instead of throwing - let the caller handle fallback
   return provider;
 }
 

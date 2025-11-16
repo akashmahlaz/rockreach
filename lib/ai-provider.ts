@@ -97,34 +97,63 @@ export function getModelInstance(config: AIProviderSettings) {
  */
 export async function getDefaultModel(orgId: string) {
   try {
+    console.log('[AI Provider] Getting default model for orgId:', orgId);
     const defaultProvider = await getDefaultAIProvider(orgId);
     
-    if (defaultProvider && defaultProvider.isEnabled) {
+    console.log('[AI Provider] Default provider from DB:', {
+      found: !!defaultProvider,
+      isEnabled: defaultProvider?.isEnabled,
+      provider: defaultProvider?.provider,
+      hasApiKey: !!defaultProvider?.apiKey,
+      defaultModel: defaultProvider?.defaultModel,
+    });
+    
+    if (defaultProvider && defaultProvider.isEnabled && defaultProvider.apiKey) {
+      console.log('[AI Provider] Using configured provider:', defaultProvider.provider);
       return getModelInstance(defaultProvider);
     }
     
     // Fallback to environment variables if no provider configured
-    console.warn('No default AI provider configured, falling back to environment variables');
+    console.warn('[AI Provider] No default AI provider configured, falling back to environment variables');
+    console.log('[AI Provider] Available env vars:', {
+      hasOpenAI: !!process.env.OPENAI_API_KEY,
+      hasAnthropic: !!process.env.ANTHROPIC_API_KEY,
+      hasGoogle: !!process.env.GOOGLE_GENERATIVE_AI_API_KEY,
+      hasMistral: !!process.env.MISTRAL_API_KEY,
+      hasGroq: !!process.env.GROQ_API_KEY,
+    });
     
     if (process.env.OPENAI_API_KEY) {
+      console.log('[AI Provider] Using OpenAI from env');
       return openai('gpt-4o');
     }
     if (process.env.ANTHROPIC_API_KEY) {
+      console.log('[AI Provider] Using Anthropic from env');
       return anthropic('claude-3-5-sonnet-20241022');
     }
     if (process.env.GOOGLE_GENERATIVE_AI_API_KEY) {
+      console.log('[AI Provider] Using Google from env');
       return google('gemini-2.0-flash-exp');
     }
     if (process.env.MISTRAL_API_KEY) {
+      console.log('[AI Provider] Using Mistral from env');
       return mistral('mistral-large-latest');
     }
     if (process.env.GROQ_API_KEY) {
+      console.log('[AI Provider] Using Groq from env');
       return groq('llama-3.3-70b-versatile');
     }
     
+    console.error('[AI Provider] No provider found - neither in DB nor in env vars');
     throw new Error('No AI provider configured and no environment variables found');
   } catch (error) {
-    console.error('Error getting default model:', error);
+    console.error('[AI Provider] Error getting default model:', error);
+    if (error instanceof Error) {
+      console.error('[AI Provider] Error details:', {
+        message: error.message,
+        stack: error.stack,
+      });
+    }
     throw new Error('Failed to initialize AI model');
   }
 }
