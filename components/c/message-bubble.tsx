@@ -5,6 +5,11 @@ import { Textarea } from "@/components/ui/textarea";
 import { CheckCircle2, Copy } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { UIMessage } from "ai";
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
+import remarkMath from 'remark-math';
+import rehypeKatex from 'rehype-katex';
+import rehypeHighlight from 'rehype-highlight';
 
 interface MessageBubbleProps {
   message: UIMessage;
@@ -73,38 +78,142 @@ export function MessageBubble({
             message.parts.map((part, index) => {
               
               if (part.type === "text") {
-                // Clean up the text to remove RocketReach mentions and format nicely
+                // Clean up the text to remove RocketReach mentions
                 const cleanText = part.text
                   .replace(/RocketReach/gi, "our database")
                   .replace(/rocket reach/gi, "our database");
                 
-                // Parse markdown-style formatting
-                const lines = cleanText.split('\n');
                 return (
-                  <div key={index} className="space-y-2">
-                    {lines.map((line, lineIdx) => {
-                      // Bold text
-                      if (line.includes('**')) {
-                        const parts = line.split('**');
-                        return (
-                          <p key={lineIdx}>
-                            {parts.map((p, i) => 
-                              i % 2 === 1 ? <strong key={i} className="font-medium">{p}</strong> : <span key={i}>{p}</span>
-                            )}
-                          </p>
-                        );
-                      }
-                      // List items
-                      if (line.trim().startsWith('-') || line.trim().startsWith('•')) {
-                        return (
-                          <li key={lineIdx} className="ml-4">
-                            {line.replace(/^[-•]\s*/, '')}
-                          </li>
-                        );
-                      }
-                      // Regular text
-                      return line.trim() ? <p key={lineIdx}>{line}</p> : <br key={lineIdx} />;
-                    })}
+                  <div key={index} className="prose prose-sm max-w-none dark:prose-invert">
+                    <ReactMarkdown 
+                      remarkPlugins={[remarkGfm, remarkMath]}
+                      rehypePlugins={[rehypeKatex, rehypeHighlight]}
+                      components={{
+                        // Tables
+                        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+                        table: ({ node, ...props }) => (
+                          <div className="overflow-x-auto my-4">
+                            <table className="min-w-full divide-y divide-slate-200 border border-slate-200 rounded-lg overflow-hidden" {...props} />
+                          </div>
+                        ),
+                        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+                        thead: ({ node, ...props }) => (
+                          <thead className="bg-slate-50" {...props} />
+                        ),
+                        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+                        th: ({ node, ...props }) => (
+                          <th className="px-4 py-2 text-left text-xs font-medium text-slate-700 uppercase tracking-wider" {...props} />
+                        ),
+                        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+                        td: ({ node, ...props }) => (
+                          <td className="px-4 py-2 text-sm text-slate-900 border-t border-slate-200" {...props} />
+                        ),
+                        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+                        tr: ({ node, ...props }) => (
+                          <tr className="hover:bg-slate-50 transition-colors" {...props} />
+                        ),
+                        // Code blocks with syntax highlighting
+                        code: ({ className, children, ...props }: React.HTMLAttributes<HTMLElement> & { children?: React.ReactNode }) => {
+                          const match = /language-(\w+)/.exec(className || '');
+                          // Detect if inline code based on presence of language class
+                          const isBlockCode = match !== null;
+                          return isBlockCode ? (
+                            <div className="relative group my-4">
+                              <div className="flex items-center justify-between bg-slate-800 text-slate-200 px-4 py-2 rounded-t-lg text-xs font-mono">
+                                <span>{match ? match[1].toUpperCase() : 'CODE'}</span>
+                                <button
+                                  onClick={() => {
+                                    navigator.clipboard.writeText(String(children));
+                                  }}
+                                  className="opacity-0 group-hover:opacity-100 transition-opacity px-2 py-1 bg-slate-700 hover:bg-slate-600 rounded text-xs"
+                                >
+                                  Copy
+                                </button>
+                              </div>
+                              <code className={cn(className, "block bg-slate-900 text-slate-100 p-4 rounded-b-lg overflow-x-auto")} {...props}>
+                                {children}
+                              </code>
+                            </div>
+                          ) : (
+                            <code className="bg-slate-100 text-amber-600 px-1.5 py-0.5 rounded text-sm font-mono" {...props}>
+                              {children}
+                            </code>
+                          );
+                        },
+                        // Pre tag for code blocks
+                        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+                        pre: ({ node, ...props }) => (
+                          <pre className="my-0" {...props} />
+                        ),
+                        // Links
+                        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+                        a: ({ node, ...props }) => (
+                          <a className="text-blue-600 hover:underline font-medium" target="_blank" rel="noopener noreferrer" {...props} />
+                        ),
+                        // Paragraphs
+                        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+                        p: ({ node, ...props }) => (
+                          <p className="mb-3 leading-relaxed" {...props} />
+                        ),
+                        // Lists
+                        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+                        ul: ({ node, ...props }) => (
+                          <ul className="list-disc ml-6 mb-3 space-y-1" {...props} />
+                        ),
+                        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+                        ol: ({ node, ...props }) => (
+                          <ol className="list-decimal ml-6 mb-3 space-y-1" {...props} />
+                        ),
+                        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+                        li: ({ node, ...props }) => (
+                          <li className="leading-relaxed" {...props} />
+                        ),
+                        // Blockquotes
+                        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+                        blockquote: ({ node, ...props }) => (
+                          <blockquote className="border-l-4 border-amber-400 pl-4 my-4 italic text-slate-600" {...props} />
+                        ),
+                        // Headings
+                        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+                        h1: ({ node, ...props }) => (
+                          <h1 className="text-2xl font-bold mt-6 mb-3 text-slate-900" {...props} />
+                        ),
+                        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+                        h2: ({ node, ...props }) => (
+                          <h2 className="text-xl font-bold mt-5 mb-2 text-slate-900" {...props} />
+                        ),
+                        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+                        h3: ({ node, ...props }) => (
+                          <h3 className="text-lg font-semibold mt-4 mb-2 text-slate-900" {...props} />
+                        ),
+                        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+                        h4: ({ node, ...props }) => (
+                          <h4 className="text-base font-semibold mt-3 mb-2 text-slate-900" {...props} />
+                        ),
+                        // Horizontal rule
+                        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+                        hr: ({ node, ...props }) => (
+                          <hr className="my-6 border-slate-200" {...props} />
+                        ),
+                        // Strong/Bold
+                        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+                        strong: ({ node, ...props }) => (
+                          <strong className="font-semibold text-slate-900" {...props} />
+                        ),
+                        // Emphasis/Italic
+                        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+                        em: ({ node, ...props }) => (
+                          <em className="italic" {...props} />
+                        ),
+                        // Images
+                        img: ({ alt, ...props }: React.ImgHTMLAttributes<HTMLImageElement>) => {
+                          // eslint-disable-next-line @next/next/no-img-element
+                          return <img className="rounded-lg my-4 max-w-full h-auto" {...props} alt={alt || ''} />;
+                        },
+                      }}
+                    >
+                      {cleanText}
+                    </ReactMarkdown>
                   </div>
                 );
               }

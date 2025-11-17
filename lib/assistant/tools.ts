@@ -375,5 +375,107 @@ export function createAssistantTools({ orgId, userId }: ToolContext) {
         };
       },
     },
+    exportLeadsToCSV: {
+      description: "Generate a downloadable CSV file of leads. Use this when user asks for CSV export or wants to download results. The CSV will include all lead information with proper formatting.",
+      inputSchema: z.object({
+        leads: z.array(z.object({
+          id: z.string(),
+          fullName: z.string().nullable().optional(),
+          firstName: z.string().nullable().optional(),
+          lastName: z.string().nullable().optional(),
+          title: z.string().nullable().optional(),
+          company: z.string().nullable().optional(),
+          location: z.string().nullable().optional(),
+          linkedinUrl: z.string().nullable().optional(),
+          email: z.string().nullable().optional(),
+          phone: z.string().nullable().optional(),
+        })).min(1).describe("Array of leads to export"),
+        filename: z.string().optional().describe("Optional custom filename (without extension)"),
+      }),
+      execute: async ({ leads, filename }: { leads: NormalizedLead[]; filename?: string }) => {
+        try {
+          // Generate CSV headers
+          const headers = [
+            'ID',
+            'Full Name',
+            'First Name',
+            'Last Name',
+            'Title',
+            'Company',
+            'Email',
+            'Phone',
+            'LinkedIn',
+            'Location',
+          ];
+
+          // Helper to escape CSV fields
+          const escapeCSV = (field: string | null | undefined): string => {
+            if (!field) return '';
+            const str = String(field);
+            if (str.includes(',') || str.includes('"') || str.includes('\n')) {
+              return `"${str.replace(/"/g, '""')}"`;
+            }
+            return str;
+          };
+
+          // Generate CSV rows
+          const csvRows = [headers.join(',')];
+          for (const lead of leads) {
+            const row = [
+              escapeCSV(lead.id),
+              escapeCSV(lead.fullName),
+              escapeCSV(lead.firstName),
+              escapeCSV(lead.lastName),
+              escapeCSV(lead.title),
+              escapeCSV(lead.company),
+              escapeCSV(lead.email),
+              escapeCSV(lead.phone),
+              escapeCSV(lead.linkedinUrl),
+              escapeCSV(lead.location),
+            ];
+            csvRows.push(row.join(','));
+          }
+
+          const csvContent = csvRows.join('\n');
+          const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, -5);
+          const finalFilename = filename ? `${filename}.csv` : `leads-export-${timestamp}.csv`;
+
+          // Store CSV temporarily for download
+          const { getDb } = await import("@/lib/db");
+          const db = await getDb();
+          const fileId = randomUUID();
+          
+          await db.collection('temp_files').insertOne({
+            fileId,
+            orgId,
+            userId,
+            content: csvContent,
+            filename: finalFilename,
+            mimeType: 'text/csv',
+            createdAt: new Date(),
+            expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000), // 24 hours
+          });
+
+          // Create download URL
+          const downloadUrl = `/api/leads/download-csv?fileId=${fileId}`;
+
+          return {
+            success: true,
+            downloadUrl,
+            filename: finalFilename,
+            recordCount: leads.length,
+            message: `✓ CSV file generated with ${leads.length} lead(s). Click the link below to download:\n\n[Download ${finalFilename}](${downloadUrl})\n\n📊 The file includes: Full names, titles, companies, emails, phone numbers, LinkedIn profiles, and locations.`,
+            expiresIn: '24 hours',
+          };
+        } catch (error) {
+          console.error("exportLeadsToCSV error:", error);
+          return {
+            success: false,
+            error: error instanceof Error ? error.message : "Failed to generate CSV",
+            message: "Failed to generate CSV file. Please try again or contact support if the issue persists.",
+          };
+        }
+      },
+    },
   } as const;
 }
