@@ -2,6 +2,8 @@ import { randomUUID } from "node:crypto";
 import { z } from "zod";
 import { rrLookupProfile, rrSearchPeople } from "@/lib/rocketreach";
 import { upsertLead } from "@/models/Lead";
+import { createDatabaseTools } from "./database-tools";
+import { createProTools } from "./pro-tools";
 
 interface ToolContext {
   orgId: string;
@@ -477,5 +479,9 @@ export function createAssistantTools({ orgId, userId }: ToolContext) {
         }
       },
     },
+    // Merge database tools for full data access
+    ...createDatabaseTools({ orgId, userId }),
+    // Merge ultra-pro tools for advanced capabilities
+    ...createProTools({ orgId, userId }),
   } as const;
 }

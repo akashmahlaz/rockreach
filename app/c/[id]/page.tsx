@@ -1,6 +1,6 @@
 import { auth } from "@/auth";
 import { redirect } from "next/navigation";
-import { ChatClient } from "../chat-client";
+import { SimpleChatClient } from "../simple-chat-client";
 
 export default async function ChatPage({ params }: { params: Promise<{ id: string }> }) {
   const session = await auth();
@@ -18,7 +18,7 @@ export default async function ChatPage({ params }: { params: Promise<{ id: strin
   }
 
   return (
-    <ChatClient
+    <SimpleChatClient
       conversationId={id}
       user={{
         name: session.user.name,
