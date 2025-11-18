@@ -607,22 +607,23 @@ export function AssistantClient({ user }: AssistantClientProps) {
   };
 
   return (
-    <div className="flex h-screen bg-white">
-      {/* Sidebar - Clean minimal design */}
+    <div className="flex h-screen bg-[#212121]">
+      {/* Sidebar - ChatGPT dark theme */}
       <div
         className={cn(
-          "flex flex-col border-r border-slate-200 bg-white transition-all duration-300 ease-in-out",
+          "flex flex-col border-r border-neutral-800 bg-[#171717] transition-all duration-300 ease-in-out",
           isSidebarExpanded ? "w-64" : "w-16"
         )}
       >
         <div className="flex h-full flex-col">
           {/* New Chat Button */}
-          <div className="p-3 border-b border-slate-200">
+          <div className="p-3 border-b border-neutral-800">
             <Button
               onClick={createNewConversation}
               size="sm"
+              variant="ghost"
               className={cn(
-                "w-1/2 gap-2 bg-slate-500 hover:bg-slate-600 text-white transition-all",
+                "w-full gap-2 text-neutral-400 hover:text-white hover:bg-neutral-800 transition-all",
                 isSidebarExpanded ? "justify-start px-3" : "justify-center px-2"
               )}
             >
@@ -641,8 +642,8 @@ export function AssistantClient({ user }: AssistantClientProps) {
                 className={cn(
                   "group/item relative rounded-lg transition-all",
                   activeConvId === conv.id
-                    ? "bg-amber-50 border border-amber-200 shadow-sm"
-                    : "hover:bg-slate-50 border border-transparent"
+                    ? "bg-neutral-800"
+                    : "hover:bg-neutral-800/50"
                 )}
               >
                 {renamingConvId === conv.id ? (
@@ -655,7 +656,7 @@ export function AssistantClient({ user }: AssistantClientProps) {
                         if (e.key === "Enter") saveRenameConversation();
                         if (e.key === "Escape") cancelRenameConversation();
                       }}
-                      className="w-full px-2 py-1 text-sm border border-amber-300 rounded focus:outline-none focus:ring-2 focus:ring-amber-400"
+                      className="w-full px-2 py-1 text-sm bg-neutral-900 border border-neutral-700 rounded text-white focus:outline-none focus:ring-1 focus:ring-neutral-600"
                       autoFocus
                       onClick={(e) => e.stopPropagation()}
                     />
@@ -666,7 +667,7 @@ export function AssistantClient({ user }: AssistantClientProps) {
                           e.stopPropagation();
                           saveRenameConversation();
                         }}
-                        className="h-6 px-2 text-xs bg-amber-500 hover:bg-amber-600"
+                        className="h-6 px-2 text-xs"
                       >
                         Save
                       </Button>
@@ -677,7 +678,7 @@ export function AssistantClient({ user }: AssistantClientProps) {
                           e.stopPropagation();
                           cancelRenameConversation();
                         }}
-                        className="h-6 px-2 text-xs"
+                        className="h-6 px-2 text-xs text-neutral-400 hover:text-white"
                       >
                         Cancel
                       </Button>
@@ -689,17 +690,17 @@ export function AssistantClient({ user }: AssistantClientProps) {
                       onClick={() => setActiveConvId(conv.id)}
                       className={cn(
                         "w-full flex items-center gap-3 px-3 py-2.5 text-left text-sm transition-colors min-w-0",
-                        activeConvId === conv.id ? "text-amber-900 font-medium" : "text-slate-700"
+                        activeConvId === conv.id ? "text-neutral-100 font-medium" : "text-neutral-400"
                       )}
                     >
                       {!isSidebarExpanded ? (
                         <div className="w-full flex justify-center">
-                          <div className="h-2 w-2 rounded-full bg-amber-500" />
+                          <div className="h-2 w-2 rounded-full bg-neutral-500" />
                         </div>
                       ) : (
                         <div className="flex-1 min-w-0">
                           <span className="block truncate leading-snug">{conv.title}</span>
-                          <span className="text-xs text-slate-500 mt-0.5 block">
+                          <span className="text-xs text-neutral-500 mt-0.5 block">
                             {new Date(conv.createdAt).toLocaleDateString("en-US", {
                               month: "short",
                               day: "numeric",
@@ -709,13 +710,13 @@ export function AssistantClient({ user }: AssistantClientProps) {
                       )}
                     </button>
                     {isSidebarExpanded && (
-                      <div className="absolute top-1 right-1 opacity-50 hover:opacity-100 transition-opacity">
+                      <div className="absolute top-1 right-1 opacity-0 group-hover/item:opacity-100 transition-opacity">
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
                             <Button
                               variant="ghost"
                               size="icon"
-                              className="h-7 w-7 text-slate-600 hover:text-slate-900 hover:bg-slate-100/80"
+                              className="h-7 w-7 text-neutral-400 hover:text-white hover:bg-neutral-700"
                               onClick={(e) => {
                                 e.preventDefault();
                                 e.stopPropagation();
@@ -724,13 +725,14 @@ export function AssistantClient({ user }: AssistantClientProps) {
                               <MoreVertical className="h-3 w-3" />
                             </Button>
                           </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end" className="w-40">
+                          <DropdownMenuContent align="end" className="w-40 bg-neutral-800 border-neutral-700">
                             <DropdownMenuItem
                               onClick={(e) => {
                                 e.preventDefault();
                                 e.stopPropagation();
                                 startRenameConversation(conv.id);
                               }}
+                              className="text-neutral-300 focus:bg-neutral-700 focus:text-white"
                             >
                               <Edit3 className="h-4 w-4 mr-2" />
                               Rename
@@ -741,7 +743,7 @@ export function AssistantClient({ user }: AssistantClientProps) {
                                 e.stopPropagation();
                                 deleteConversation(conv.id);
                               }}
-                              className="text-red-600 focus:text-red-600 focus:bg-red-50"
+                              className="text-red-400 focus:text-red-300 focus:bg-neutral-700"
                             >
                               <Trash2 className="h-4 w-4 mr-2" />
                               Delete
@@ -796,7 +798,7 @@ export function AssistantClient({ user }: AssistantClientProps) {
           )}
 
           {/* Bottom Section - User and Expand Button */}
-          <div className="border-t border-slate-200">
+          <div className="border-t border-neutral-800">
             {/* User Info */}
             {user.name && (
               <div className="p-3 flex items-center justify-between gap-2">
@@ -805,25 +807,25 @@ export function AssistantClient({ user }: AssistantClientProps) {
                     <div className="flex items-center gap-2 min-w-0 flex-1">
                       <Avatar className="h-8 w-8 shrink-0">
                         {user.image && <AvatarImage src={user.image} alt={user.name || ""} />}
-                        <AvatarFallback className="bg-amber-100 text-amber-700 text-sm">
+                        <AvatarFallback className="bg-neutral-700 text-neutral-200 text-sm">
                           {user.name?.charAt(0).toUpperCase() || user.email?.charAt(0).toUpperCase() || "U"}
                         </AvatarFallback>
                       </Avatar>
                       <div className="min-w-0 flex-1">
-                        <p className="text-sm font-medium text-slate-700 truncate">{user.name}</p>
+                        <p className="text-sm font-medium text-neutral-200 truncate">{user.name}</p>
                       </div>
                       <Link
                         href="/settings"
-                        className="shrink-0 p-1.5 hover:bg-slate-100 rounded-lg transition-colors"
+                        className="shrink-0 p-1.5 hover:bg-neutral-800 rounded-lg transition-colors"
                       >
-                        <Settings className="h-4 w-4 text-slate-500" />
+                        <Settings className="h-4 w-4 text-neutral-400" />
                       </Link>
                     </div>
                   </>
                 ) : (
                   <Avatar className="h-8 w-8 mx-auto">
                     {user.image && <AvatarImage src={user.image} alt={user.name || ""} />}
-                    <AvatarFallback className="bg-amber-100 text-amber-700 text-sm">
+                    <AvatarFallback className="bg-neutral-700 text-neutral-200 text-sm">
                       {user.name?.charAt(0).toUpperCase() || user.email?.charAt(0).toUpperCase() || "U"}
                     </AvatarFallback>
                   </Avatar>
@@ -832,12 +834,12 @@ export function AssistantClient({ user }: AssistantClientProps) {
             )}
             
             {/* Expand/Collapse Button at Bottom */}
-            <div className="border-t border-slate-200 p-2">
+            <div className="border-t border-neutral-800 p-2">
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={() => setIsSidebarExpanded(!isSidebarExpanded)}
-                className="w-full hover:bg-slate-100 text-slate-600"
+                className="w-full hover:bg-neutral-800 text-neutral-400 hover:text-white"
               >
                 {isSidebarExpanded ? (
                   <>
