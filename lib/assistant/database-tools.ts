@@ -42,12 +42,12 @@ Security: Automatically filters by orgId for data isolation (except system colle
       inputSchema: z.object({
         collection: z.string().describe("Collection name (e.g., 'users', 'conversations', 'leads', 'api_usage')"),
         operation: z.enum(["find", "findOne", "count", "aggregate", "distinct"]).describe("MongoDB operation to perform"),
-        query: z.record(z.any()).optional().describe("Query filter (MongoDB query syntax). Leave empty for all documents."),
-        projection: z.record(z.any()).optional().describe("Fields to include/exclude in results"),
-        sort: z.record(z.number()).optional().describe("Sort order (e.g., {createdAt: -1} for newest first)"),
+        query: z.record(z.string(), z.any()).optional().describe("Query filter (MongoDB query syntax). Leave empty for all documents."),
+        projection: z.record(z.string(), z.any()).optional().describe("Fields to include/exclude in results"),
+        sort: z.record(z.string(), z.number()).optional().describe("Sort order (e.g., {createdAt: -1} for newest first)"),
         limit: z.number().optional().default(50).describe("Maximum documents to return (default: 50, max: 200)"),
         skip: z.number().optional().describe("Number of documents to skip (for pagination)"),
-        pipeline: z.array(z.record(z.any())).optional().describe("Aggregation pipeline stages (for aggregate operation)"),
+        pipeline: z.array(z.record(z.string(), z.any())).optional().describe("Aggregation pipeline stages (for aggregate operation)"),
         field: z.string().optional().describe("Field name (for distinct operation)"),
       }),
       execute: async (input: {
@@ -95,7 +95,7 @@ Security: Automatically filters by orgId for data isolation (except system colle
             case "find":
               result = await collection
                 .find(query, { projection: input.projection })
-                .sort(input.sort || {})
+                .sort((input.sort as any) || {})
                 .skip(input.skip || 0)
                 .limit(limit)
                 .toArray();
