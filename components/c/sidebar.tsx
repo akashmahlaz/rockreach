@@ -4,11 +4,6 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from "@/components/ui/collapsible";
-import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
@@ -16,18 +11,14 @@ import {
 } from "@/components/ui/dropdown-menu";
 import {
   Plus,
-  ChevronDown,
-  ChevronRight,
   MoreVertical,
   Edit3,
   Trash2,
-  DollarSign,
-  Zap,
-  TrendingUp,
-  Loader2,
+  Menu,
+  User,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { Conversation, UsageStats } from "./types";
+import { Conversation } from "./types";
 
 interface AssistantSidebarProps {
   conversations: Conversation[];
@@ -36,10 +27,10 @@ interface AssistantSidebarProps {
   onNewConversation: () => void;
   onDeleteConversation: (id: string) => void;
   onRenameConversation: (id: string, title: string) => void;
-  usageStats: UsageStats | null;
-  loadingStats: boolean;
-  usagePeriod: "24h" | "7d" | "30d";
-  onUsagePeriodChange: (period: "24h" | "7d" | "30d") => void;
+  usageStats?: unknown;
+  loadingStats?: boolean;
+  usagePeriod?: string;
+  onUsagePeriodChange?: (period: unknown) => void;
 }
 
 export function AssistantSidebar({
@@ -49,13 +40,7 @@ export function AssistantSidebar({
   onNewConversation,
   onDeleteConversation,
   onRenameConversation,
-  usageStats,
-  loadingStats,
-  usagePeriod,
-  onUsagePeriodChange,
 }: AssistantSidebarProps) {
-  const [isConversationsOpen, setIsConversationsOpen] = useState(true);
-  const [isUsageStatsOpen, setIsUsageStatsOpen] = useState(true);
   const [renamingConvId, setRenamingConvId] = useState<string | null>(null);
   const [renameValue, setRenameValue] = useState("");
 
@@ -76,188 +61,116 @@ export function AssistantSidebar({
   };
 
   return (
-    <div className="w-80 bg-white border-r border-neutral-200 flex flex-col h-full">
-      {/* Header */}
-      <div className="p-4 border-b border-neutral-200">
-        <Button
-          onClick={onNewConversation}
-          className="w-full"
-        >
-          <Plus className="h-4 w-4 mr-2" />
-          New Chat
-        </Button>
+    <div className="w-64 bg-[#171717] flex flex-col h-full border-r border-neutral-800">
+      {/* Fixed Top Section */}
+      <div className="shrink-0">
+        {/* Header with Menu */}
+        <div className="p-3 flex items-center justify-between">
+          <Button
+            variant="ghost"
+            size="icon"
+            className="text-neutral-400 hover:text-white hover:bg-neutral-800"
+          >
+            <Menu className="h-5 w-5" />
+          </Button>
+          <Button
+            onClick={onNewConversation}
+            variant="ghost"
+            size="icon"
+            className="text-neutral-400 hover:text-white hover:bg-neutral-800"
+          >
+            <Plus className="h-5 w-5" />
+          </Button>
+        </div>
       </div>
 
+      {/* Scrollable Chats Section */}
       <ScrollArea className="flex-1">
-        <div className="p-4 space-y-4">
-          {/* Recent Chats Section */}
-          <Collapsible open={isConversationsOpen} onOpenChange={setIsConversationsOpen}>
-            <CollapsibleTrigger className="flex items-center justify-between w-full text-sm font-semibold text-neutral-700 hover:text-neutral-900">
-              <span>Recent Chats</span>
-              {isConversationsOpen ? (
-                <ChevronDown className="h-4 w-4" />
-              ) : (
-                <ChevronRight className="h-4 w-4" />
-              )}
-            </CollapsibleTrigger>
-            <CollapsibleContent className="mt-2 space-y-1">
-              {conversations.length === 0 ? (
-                <p className="text-xs text-neutral-500 py-4 text-center">
-                  No conversations yet
-                </p>
-              ) : (
-                conversations.map((conv) => (
-                  <div
-                    key={conv.id}
-                    className={cn(
-                      "group relative flex items-center gap-2 px-3 py-2 rounded-lg cursor-pointer transition-colors",
-                      activeConvId === conv.id
-                        ? "bg-neutral-100 text-neutral-900 font-medium"
-                        : "hover:bg-neutral-50 text-neutral-700"
-                    )}
-                  >
-                    {renamingConvId === conv.id ? (
-                      <input
-                        type="text"
-                        value={renameValue}
-                        onChange={(e) => setRenameValue(e.target.value)}
-                        onBlur={() => handleRenameSubmit(conv.id)}
-                        onKeyDown={(e) => {
-                          if (e.key === "Enter") handleRenameSubmit(conv.id);
-                          if (e.key === "Escape") setRenamingConvId(null);
-                        }}
-                        className="flex-1 bg-white border border-neutral-300 rounded px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-neutral-400"
-                        autoFocus
-                      />
-                    ) : (
-                      <>
-                        <div
-                          onClick={() => onConversationSelect(conv.id)}
-                          className="flex-1 truncate text-sm"
-                        >
-                          {conv.title}
-                        </div>
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="h-7 w-7 opacity-100 hover:bg-neutral-200 transition-all shrink-0"
-                              onClick={(e) => e.stopPropagation()}
-                            >
-                              <MoreVertical className="h-4 w-4" />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
-                            <DropdownMenuItem
-                              onClick={() => startRenameConversation(conv.id)}
-                            >
-                              <Edit3 className="h-3 w-3 mr-2" />
-                              Rename
-                            </DropdownMenuItem>
-                            <DropdownMenuItem
-                              onClick={() => onDeleteConversation(conv.id)}
-                              className="text-red-600 focus:text-red-600"
-                            >
-                              <Trash2 className="h-3 w-3 mr-2" />
-                              Delete
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      </>
-                    )}
-                  </div>
-                ))
-              )}
-            </CollapsibleContent>
-          </Collapsible>
-
-          {/* AI Usage Stats Section */}
-          <Collapsible open={isUsageStatsOpen} onOpenChange={setIsUsageStatsOpen}>
-            <CollapsibleTrigger className="flex items-center justify-between w-full text-sm font-semibold text-neutral-700 hover:text-neutral-900">
-              <span>AI Usage Stats</span>
-              {isUsageStatsOpen ? (
-                <ChevronDown className="h-4 w-4" />
-              ) : (
-                <ChevronRight className="h-4 w-4" />
-              )}
-            </CollapsibleTrigger>
-            <CollapsibleContent className="mt-2">
-              <div className="space-y-3">
-                {/* Period Selector */}
-                <select
-                  value={usagePeriod}
-                  onChange={(e) =>
-                    onUsagePeriodChange(e.target.value as "24h" | "7d" | "30d")
-                  }
-                  className="w-full px-3 py-1.5 text-xs border border-neutral-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-neutral-400"
-                >
-                  <option value="24h">Last 24 hours</option>
-                  <option value="7d">Last 7 days</option>
-                  <option value="30d">Last 30 days</option>
-                </select>
-
-                {loadingStats ? (
-                  <div className="flex items-center justify-center py-4">
-                    <Loader2 className="h-4 w-4 animate-spin text-neutral-500" />
-                  </div>
-                ) : usageStats ? (
-                  <div className="space-y-2">
-                    <div className="bg-gradient-to-br from-amber-50 to-orange-50 p-3 rounded-lg border border-amber-200">
-                      <div className="flex items-center justify-between mb-1">
-                        <span className="text-xs text-amber-700 font-medium">
-                          Total Cost
-                        </span>
-                        <DollarSign className="h-3 w-3 text-amber-600" />
-                      </div>
-                      <div className="text-lg font-bold text-amber-900">
-                        ${usageStats.estimatedCost}
-                      </div>
-                      <div className="text-xs text-amber-600 mt-1">
-                        {usageStats.totalCalls} calls
-                      </div>
-                    </div>
-
-                    <div className="bg-gradient-to-br from-purple-50 to-indigo-50 p-3 rounded-lg border border-purple-200">
-                      <div className="flex items-center justify-between mb-1">
-                        <span className="text-xs text-purple-700 font-medium">
-                          Tokens Used
-                        </span>
-                        <Zap className="h-3 w-3 text-purple-600" />
-                      </div>
-                      <div className="text-lg font-bold text-purple-900">
-                        {(usageStats.totalTokens / 1000).toFixed(1)}K
-                      </div>
-                      <div className="text-xs text-purple-600 mt-1">
-                        {usageStats.successCalls} successful
-                      </div>
-                    </div>
-
-                    <div className="bg-gradient-to-br from-blue-50 to-cyan-50 p-3 rounded-lg border border-blue-200">
-                      <div className="flex items-center justify-between mb-1">
-                        <span className="text-xs text-blue-700 font-medium">
-                          Avg Response
-                        </span>
-                        <TrendingUp className="h-3 w-3 text-blue-600" />
-                      </div>
-                      <div className="text-lg font-bold text-blue-900">
-                        {(usageStats.avgDurationMs / 1000).toFixed(1)}s
-                      </div>
-                      <div className="text-xs text-blue-600 mt-1">
-                        ${usageStats.costPerCall}/call
-                      </div>
-                    </div>
-                  </div>
+        <div className="px-2 py-2 space-y-1">
+          {conversations.length === 0 ? (
+            <p className="text-xs text-neutral-500 py-8 text-center">
+              No conversations yet
+            </p>
+          ) : (
+            conversations.map((conv) => (
+              <div
+                key={conv.id}
+                className={cn(
+                  "group relative flex items-center gap-2 px-3 py-2.5 rounded-lg cursor-pointer transition-colors",
+                  activeConvId === conv.id
+                    ? "bg-neutral-800"
+                    : "hover:bg-neutral-800/50"
+                )}
+              >
+                {renamingConvId === conv.id ? (
+                  <input
+                    type="text"
+                    value={renameValue}
+                    onChange={(e) => setRenameValue(e.target.value)}
+                    onBlur={() => handleRenameSubmit(conv.id)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") handleRenameSubmit(conv.id);
+                      if (e.key === "Escape") setRenamingConvId(null);
+                    }}
+                    className="flex-1 bg-neutral-900 border border-neutral-700 rounded px-2 py-1 text-sm text-white focus:outline-none focus:ring-1 focus:ring-neutral-600"
+                    autoFocus
+                  />
                 ) : (
-                  <p className="text-xs text-slate-500 text-center py-4">
-                    No usage data available
-                  </p>
+                  <>
+                    <div
+                      onClick={() => onConversationSelect(conv.id)}
+                      className="flex-1 truncate text-sm text-neutral-300"
+                    >
+                      {conv.title}
+                    </div>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-6 w-6 opacity-0 group-hover:opacity-100 hover:bg-neutral-700 transition-all shrink-0 text-neutral-400 hover:text-white"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          <MoreVertical className="h-4 w-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end" className="bg-neutral-800 border-neutral-700">
+                        <DropdownMenuItem
+                          onClick={() => startRenameConversation(conv.id)}
+                          className="text-neutral-300 focus:bg-neutral-700 focus:text-white"
+                        >
+                          <Edit3 className="h-3 w-3 mr-2" />
+                          Rename
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          onClick={() => onDeleteConversation(conv.id)}
+                          className="text-red-400 focus:text-red-300 focus:bg-neutral-700"
+                        >
+                          <Trash2 className="h-3 w-3 mr-2" />
+                          Delete
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </>
                 )}
               </div>
-            </CollapsibleContent>
-          </Collapsible>
+            ))
+          )}
         </div>
       </ScrollArea>
+
+      {/* Fixed Bottom Section */}
+      <div className="shrink-0 border-t border-neutral-800">
+        <div className="p-3">
+          <Button
+            variant="ghost"
+            className="w-full justify-start text-neutral-400 hover:text-white hover:bg-neutral-800 text-sm"
+          >
+            <User className="h-4 w-4 mr-2" />
+            <span className="truncate">Akash Dalla</span>
+          </Button>
+        </div>
+      </div>
     </div>
   );
 }
