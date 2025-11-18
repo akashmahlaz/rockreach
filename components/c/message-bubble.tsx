@@ -61,13 +61,13 @@ export function MessageBubble({
       isUser ? "justify-end" : "justify-start"
     )}>
       <div className={cn(
-        "rounded-2xl px-4 py-3 shadow-sm",
+        "rounded-2xl px-4 py-1 shadow-sm",
         isUser 
-          ? "max-w-[80%] bg-amber-500 text-white ml-auto" 
-          : "w-full bg-white border border-slate-200 text-slate-900"
+          ? "max-w-[75%] bg-slate-700 text-white" 
+          : "w-full bg-transparent text-slate-900"
       )}>
         <div className={cn(
-          "text-sm leading-relaxed",
+          "text-[15px] leading-relaxed",
           isUser ? "text-white" : "text-slate-900"
         )}>
           {!message.parts || message.parts.length === 0 ? (

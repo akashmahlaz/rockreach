@@ -45,8 +45,7 @@ export default async function RootLayout({
       <head>
       </head>
       <body className="font-sans antialiased">
-       <UnifiedNavbar user={user} />
-          {children}
+           {children}
         <Toaster position="top-right" richColors closeButton />
       </body>
     </html>

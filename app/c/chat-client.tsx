@@ -912,7 +912,7 @@ export function ChatClient({ conversationId, user }: ChatClientProps) {
         {/* Messages */}
         <div className="flex-1 overflow-hidden">
           <div ref={scrollRef} className="h-full overflow-y-auto">
-            <div className="mx-auto max-w-3xl px-4 py-8">
+            <div className="mx-auto max-w-4xl px-6 py-6">
               {messages.length === 0 ? (
                 <EmptyState onExampleClick={(text) => {
                   setLocalInput(text);
@@ -922,7 +922,7 @@ export function ChatClient({ conversationId, user }: ChatClientProps) {
                   }, 100);
                 }} />
               ) : (
-                <div className="space-y-6">
+                <div className="space-y-4">
                   {messages.map((message) => {
                     // Add safety check for message structure
                     if (!message || !message.id) {
@@ -979,7 +979,7 @@ export function ChatClient({ conversationId, user }: ChatClientProps) {
 
         {/* Input Area - ChatGPT style */}
         <div className="border-t border-slate-200 bg-white">
-          <div className="mx-auto max-w-3xl px-4 py-4">
+          <div className="mx-auto max-w-4xl px-6 py-3">
             <form onSubmit={handleSubmit} className="relative">
               <div className="relative flex items-end rounded-2xl border border-slate-300 bg-white shadow-sm transition-all duration-200 focus-within:border-amber-400 focus-within:shadow-lg focus-within:ring-2 focus-within:ring-amber-100">
                 <Textarea
