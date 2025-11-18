@@ -898,13 +898,13 @@ export function ChatClient({ conversationId, user }: ChatClientProps) {
       </div>
 
       {/* Main Content */}
-      <div className="flex flex-1 flex-col min-w-0 relative">
+      <div className="flex flex-1 flex-col min-w-0 relative bg-[#212121]">
         {/* Conversation Switching Overlay */}
         {isSwitchingConversation && (
-          <div className="absolute inset-0 bg-white/80 backdrop-blur-sm z-10 flex items-center justify-center">
+          <div className="absolute inset-0 bg-neutral-900/80 backdrop-blur-sm z-10 flex items-center justify-center">
             <div className="flex flex-col items-center gap-3">
-              <Loader2 className="h-8 w-8 animate-spin text-amber-500" />
-              <span className="text-sm text-slate-600">Loading conversation...</span>
+              <Loader2 className="h-8 w-8 animate-spin text-neutral-400" />
+              <span className="text-sm text-neutral-400">Loading conversation...</span>
             </div>
           </div>
         )}
@@ -912,7 +912,7 @@ export function ChatClient({ conversationId, user }: ChatClientProps) {
         {/* Messages */}
         <div className="flex-1 overflow-hidden">
           <div ref={scrollRef} className="h-full overflow-y-auto">
-            <div className="mx-auto max-w-4xl px-6 py-6">
+            <div className="mx-auto max-w-3xl px-4 py-8">
               {messages.length === 0 ? (
                 <EmptyState onExampleClick={(text) => {
                   setLocalInput(text);
@@ -977,32 +977,38 @@ export function ChatClient({ conversationId, user }: ChatClientProps) {
           </div>
         </div>
 
-        {/* Input Area - Classic Clean */}
-        <div className="border-t border-neutral-200 bg-white">
-          <div className="mx-auto max-w-4xl px-6 py-4">
-            <form onSubmit={handleSubmit} className="flex items-end gap-2">
-              <Textarea
-                ref={textareaRef}
-                rows={1}
-                value={localInput}
-                onChange={(e) => setLocalInput(e.target.value)}
-                onKeyDown={handleKeyDown}
-                placeholder="Find 10 CTO of Tech Startups in San Francisco..."
-                disabled={isLoading}
-                className="min-h-11 max-h-[200px] flex-1 resize-none border border-neutral-300 rounded px-3 py-2 text-sm focus:border-neutral-400 focus:ring-1 focus:ring-neutral-400 focus:outline-none"
-              />
-              <Button
-                type="submit"
-                disabled={!localInput.trim() || isLoading}
-                size="icon"
-                className="h-11 w-11 shrink-0"
-              >
-                {isLoading ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                ) : (
-                  <Send className="h-4 w-4" />
-                )}
-              </Button>
+        {/* Input Area - ChatGPT Style */}
+        <div className="bg-[#212121] pb-6">
+          <div className="mx-auto max-w-3xl px-4">
+            <form onSubmit={handleSubmit} className="relative">
+              <div className="flex items-center gap-2 bg-[#2f2f2f] rounded-full px-4 py-3 border border-neutral-700 focus-within:border-neutral-600 transition-colors">
+                <button type="button" className="text-neutral-400 hover:text-neutral-200 transition-colors">
+                  <Plus className="h-5 w-5" />
+                </button>
+                <Textarea
+                  ref={textareaRef}
+                  rows={1}
+                  value={localInput}
+                  onChange={(e) => setLocalInput(e.target.value)}
+                  onKeyDown={handleKeyDown}
+                  placeholder="Ask anything"
+                  disabled={isLoading}
+                  className="flex-1 bg-transparent border-0 text-white placeholder:text-neutral-400 resize-none focus:outline-none focus:ring-0 text-[15px] leading-relaxed min-h-6 max-h-[200px]"
+                />
+                <Button
+                  type="submit"
+                  disabled={!localInput.trim() || isLoading}
+                  size="icon"
+                  variant="ghost"
+                  className="h-8 w-8 rounded-full shrink-0 text-neutral-400 hover:text-white hover:bg-neutral-700"
+                >
+                  {isLoading ? (
+                    <Loader2 className="h-5 w-5 animate-spin" />
+                  ) : (
+                    <Send className="h-5 w-5" />
+                  )}
+                </Button>
+              </div>
             </form>
             {isLoading && (
               <p className="mt-2 text-center text-xs text-neutral-500">

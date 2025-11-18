@@ -6,20 +6,11 @@ interface EmptyStateProps {
 
 export function EmptyState({ onExampleClick }: EmptyStateProps) {
   return (
-    <div className="flex items-center justify-center min-h-[60vh]">
-      <div className="text-center space-y-6 max-w-2xl">
-        <h1 className="text-2xl font-semibold text-neutral-800">
-          AI Lead Generation Assistant
+    <div className="flex items-center justify-center min-h-[70vh]">
+      <div className="text-center space-y-8">
+        <h1 className="text-3xl font-medium text-white">
+          What's on your mind today?
         </h1>
-        <p className="text-neutral-600">
-          Tell me what you&apos;re looking for, and I&apos;ll instantly provide:
-        </p>
-        <div className="text-left space-y-2 text-neutral-700 mx-auto max-w-xs">
-          <div>✓ Full Names & Titles</div>
-          <div>✓ Email Addresses</div>
-          <div>✓ Phone Numbers</div>
-          <div>✓ Downloadable CSV</div>
-        </div>
       </div>
     </div>
   );

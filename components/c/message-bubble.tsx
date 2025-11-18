@@ -62,7 +62,7 @@ export function MessageBubble({
     )}>
       <div className={cn(
         "text-[15px] leading-relaxed",
-        isUser ? "text-neutral-700" : "text-neutral-900"
+        isUser ? "text-neutral-300" : "text-neutral-100"
       )}>
           {!message.parts || message.parts.length === 0 ? (
             <div className="text-neutral-400 italic">No content</div>
