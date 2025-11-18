@@ -993,7 +993,7 @@ export function ChatClient({ conversationId, user }: ChatClientProps) {
                   onKeyDown={handleKeyDown}
                   placeholder="Ask anything"
                   disabled={isLoading}
-                  className="flex-1 bg-transparent border-0 text-white placeholder:text-neutral-400 resize-none focus:outline-none focus:ring-0 text-[15px] leading-relaxed min-h-6 max-h-[200px]"
+                  className="flex-1 bg-transparent border-0 text-white placeholder:text-neutral-400 resize-none focus:outline-none focus:ring-0 focus-visible:ring-0 focus-visible:outline-none text-[15px] leading-relaxed min-h-6 max-h-[200px]"
                 />
                 <Button
                   type="submit"
