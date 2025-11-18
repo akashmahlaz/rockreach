@@ -61,10 +61,9 @@ export function MessageBubble({
       isUser ? "justify-end" : "justify-start"
     )}>
       <div className={cn(
-        "rounded-2xl px-4 py-1 shadow-sm",
         isUser 
-          ? "max-w-[75%] bg-slate-700 text-white" 
-          : "w-full bg-transparent text-slate-900"
+          ? "max-w-[75%] bg-slate-700 text-white rounded-2xl px-4 py-2.5" 
+          : "w-full"
       )}>
         <div className={cn(
           "text-[15px] leading-relaxed",
