@@ -463,6 +463,8 @@ export function createAssistantTools({ orgId, userId }: ToolContext) {
           const db = await getDb();
           const fileId = randomUUID();
           
+          console.log('[Export CSV] Creating temp file:', { fileId, orgId, userId, filename: finalFilename });
+          
           await db.collection('temp_files').insertOne({
             fileId,
             orgId,
@@ -474,6 +476,8 @@ export function createAssistantTools({ orgId, userId }: ToolContext) {
             expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000), // 24 hours
           });
 
+          console.log('[Export CSV] File saved successfully:', fileId);
+
           // Create download URL
           const downloadUrl = `/api/leads/download-csv?fileId=${fileId}`;
 
@@ -481,13 +485,15 @@ export function createAssistantTools({ orgId, userId }: ToolContext) {
           const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
           const fullDownloadUrl = `${baseUrl}${downloadUrl}`;
           
+          console.log('[Export CSV] Download URLs created:', { downloadUrl, fullDownloadUrl });
+          
           return {
             success: true,
             downloadUrl,
             fullDownloadUrl,
             filename: finalFilename,
             recordCount: leads.length,
-            message: `✅ **CSV Export Ready!**\n\n📥 **[Click Here to Download ${finalFilename} →](${fullDownloadUrl})**\n\n📊 **What's included:**\n- ${leads.length} leads with complete information\n- Full names, job titles, companies\n- Email addresses and phone numbers\n- LinkedIn profiles and locations\n\n⏰ *Download link expires in 24 hours*`,
+            message: `✅ **CSV Export Ready!**\n\n📥 **Download Your File:**\n\n[**📄 ${finalFilename}** - Click to Download](${fullDownloadUrl})\n\n📊 **File Contents:**\n- **${leads.length} leads** with complete contact information\n- Full names, job titles, companies\n- Email addresses and phone numbers  \n- LinkedIn profiles and locations\n- All data properly formatted for Excel/Google Sheets\n\n⏰ *Note: Download link expires in 24 hours*\n\n💡 **Tip:** The file will download automatically when you click the link above.`,
             expiresIn: '24 hours',
           };
         } catch (error) {

@@ -23,14 +23,39 @@ export async function GET(req: Request) {
     const user = await db.collection('users').findOne({ email: session.user.email });
     const orgId = user?.orgId ? String(user.orgId) : session.user.orgId ?? session.user.email;
 
-    // Fetch the temporary file
-    const tempFile = await db.collection('temp_files').findOne({
+    console.log('[Download CSV] Looking for file:', { fileId, orgId, userEmail: session.user.email });
+
+    // Try to fetch the temporary file with the user's orgId
+    let tempFile = await db.collection('temp_files').findOne({
       fileId,
       orgId,
     });
 
+    // If not found with orgId, try with just fileId (fallback for debugging)
     if (!tempFile) {
-      return NextResponse.json({ error: 'File not found or expired' }, { status: 404 });
+      console.log('[Download CSV] Not found with orgId, trying fileId only...');
+      tempFile = await db.collection('temp_files').findOne({ fileId });
+      
+      if (tempFile) {
+        console.log('[Download CSV] Found with different orgId:', {
+          fileOrgId: tempFile.orgId,
+          requestedOrgId: orgId,
+          match: tempFile.orgId === orgId
+        });
+      }
+    }
+
+    console.log('[Download CSV] File found:', tempFile ? 'YES' : 'NO');
+
+    if (!tempFile) {
+      return NextResponse.json({ 
+        error: 'File not found or expired',
+        debug: { 
+          fileId, 
+          requestedOrgId: orgId,
+          message: 'The file may have expired or the fileId is incorrect.'
+        }
+      }, { status: 404 });
     }
 
     // Check if file is expired
