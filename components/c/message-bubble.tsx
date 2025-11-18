@@ -57,10 +57,13 @@ export function MessageBubble({
 
   return (
     <div className={cn(
-      "animate-in fade-in slide-in-from-bottom-2 duration-300",
-      isUser ? "text-slate-700" : "text-slate-900"
+      "flex animate-in fade-in slide-in-from-bottom-2 duration-300",
+      isUser ? "justify-end" : "justify-start"
     )}>
-      <div className="text-[15px] leading-relaxed">
+      <div className={cn(
+        "text-[15px] leading-relaxed",
+        isUser ? "text-slate-700" : "text-slate-900"
+      )}>
           {!message.parts || message.parts.length === 0 ? (
             <div className="text-slate-400 italic">No content</div>
           ) : (
