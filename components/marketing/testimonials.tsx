@@ -34,30 +34,30 @@ const testimonials = [
 
 export function Testimonials() {
   return (
-    <section className="py-20 px-4 sm:px-6 lg:px-8">
+    <section className="py-20 px-4 sm:px-6 lg:px-8 bg-background">
       <div className="max-w-7xl mx-auto">
         <div className="text-center mb-16">
-          <h2 className="text-4xl sm:text-5xl font-bold text-slate-900 mb-4">
+          <h2 className="text-4xl sm:text-5xl font-bold text-foreground mb-4 font-sans">
             Loved by sales teams
           </h2>
-          <p className="text-xl text-slate-600 max-w-3xl mx-auto">
+          <p className="text-xl text-muted-foreground max-w-3xl mx-auto font-sans">
             Don&apos;t just take our word for it—here&apos;s what our customers have to say
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {testimonials.map((testimonial, index) => (
-            <Card key={index} className="border-2 border-slate-200 bg-white">
+            <Card key={index} className="border">
               <CardContent className="pt-6">
                 {/* Rating */}
                 <div className="flex gap-1 mb-4">
                   {[...Array(testimonial.rating)].map((_, i) => (
-                    <Star key={i} className="h-5 w-5 fill-yellow-400 text-yellow-400" />
+                    <Star key={i} className="h-5 w-5 fill-primary text-primary" />
                   ))}
                 </div>
 
                 {/* Content */}
-                <p className="text-slate-700 leading-relaxed mb-6">
+                <p className="text-foreground leading-relaxed mb-6 font-sans">
                   &quot;{testimonial.content}&quot;
                 </p>
 
@@ -65,7 +65,7 @@ export function Testimonials() {
                 <div className="flex items-center gap-3">
                   <Avatar>
                     <AvatarImage src={testimonial.avatar} alt={testimonial.name} />
-                    <AvatarFallback className="bg-gradient-to-r from-indigo-500 to-purple-500 text-white">
+                    <AvatarFallback className="bg-primary text-primary-foreground">
                       {testimonial.name
                         .split(" ")
                         .map((n) => n[0])
@@ -73,8 +73,8 @@ export function Testimonials() {
                     </AvatarFallback>
                   </Avatar>
                   <div>
-                    <div className="font-semibold text-slate-900">{testimonial.name}</div>
-                    <div className="text-sm text-slate-600">
+                    <div className="font-semibold text-foreground font-sans">{testimonial.name}</div>
+                    <div className="text-sm text-muted-foreground font-sans">
                       {testimonial.role} at {testimonial.company}
                     </div>
                   </div>

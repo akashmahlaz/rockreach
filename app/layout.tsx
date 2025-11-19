@@ -3,8 +3,7 @@ import type { Metadata } from "next"
 import { Inter, Instrument_Serif } from "next/font/google"
 import "./globals.css"
 import { Toaster } from "@/components/ui/sonner"
-import { auth } from "@/auth"
-import { UnifiedNavbar } from "@/components/unified-navbar"
+import { ThemeProvider } from "@/components/theme-provider"
 
 
 
@@ -37,16 +36,21 @@ export default async function RootLayout({
 }: {
   children: React.ReactNode
 }) {
-  const session = await auth()
-  const user = session?.user ? { ...session.user, role: session.user.role } : null
-
   return (
-    <html lang="en" className={`${inter.variable} ${instrumentSerif.variable} antialiased`}>
-      <head>
-      </head>
+    <html lang="en" className={`${inter.variable} ${instrumentSerif.variable}`} suppressHydrationWarning>
+      <head />
       <body className="font-sans antialiased">
-           {children}
-        <Toaster position="top-right" richColors closeButton />
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="light"
+          enableSystem={false}
+          disableTransitionOnChange
+        >
+          <main className="min-h-screen">
+            {children}
+          </main>
+          <Toaster position="top-right" richColors closeButton />
+        </ThemeProvider>
       </body>
     </html>
   )

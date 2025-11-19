@@ -1,5 +1,6 @@
 import { auth } from "@/auth";
 import { redirect } from "next/navigation";
+import { NavbarWrapper } from "@/components/layout/navbar-wrapper";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
@@ -17,15 +18,17 @@ export default async function AdminDashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-[#F7F5F3]">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-semibold text-[#37322F] font-serif">Admin Dashboard</h1>
-          <p className="text-[#605A57] mt-2">
-            System administration and configuration
-          </p>
-        </div>
+    <>
+      <NavbarWrapper />
+      <div className="min-h-screen bg-background">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          {/* Header */}
+          <div className="mb-8">
+            <h1 className="text-3xl font-bold text-foreground">Admin Dashboard</h1>
+            <p className="text-muted-foreground mt-2">
+              System administration and configuration
+            </p>
+          </div>
 
         {/* Admin Quick Actions */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
@@ -187,12 +190,13 @@ export default async function AdminDashboard() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="text-center py-8 text-[#605A57]">
+            <div className="text-center py-8 text-muted-foreground">
               <p>No recent activity</p>
             </div>
           </CardContent>
         </Card>
       </div>
     </div>
+    </>
   );
 }

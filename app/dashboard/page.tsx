@@ -1,5 +1,6 @@
 import { auth } from "@/auth";
 import { redirect } from "next/navigation";
+import { NavbarWrapper } from "@/components/layout/navbar-wrapper";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
@@ -17,56 +18,58 @@ export default async function DashboardPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#F7F5F3]">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-semibold text-[#37322F] font-serif">My Dashboard</h1>
-          <p className="text-[#605A57] mt-2">
-            Welcome back, {session.user.name || session.user.email}
-          </p>
-        </div>
+    <>
+      <NavbarWrapper />
+      <div className="min-h-screen bg-background">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          {/* Header */}
+          <div className="mb-8">
+            <h1 className="text-3xl font-bold text-foreground">Dashboard</h1>
+            <p className="text-muted-foreground mt-2">
+              Welcome back, {session.user.name || session.user.email}
+            </p>
+          </div>
 
-        {/* Quick Actions Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-          <Card className="border-[rgba(55,50,47,0.12)] bg-white hover:shadow-lg transition-shadow">
-            <CardHeader>
-              <CardTitle className="text-xl text-[#37322F]">Search Leads</CardTitle>
-              <CardDescription className="text-[#605A57]">
-                Find prospects using Logician
-              </CardDescription>
+          {/* Quick Actions Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+            <Card className="hover:shadow-lg transition-shadow">
+              <CardHeader>
+                <CardTitle>Search Leads</CardTitle>
+                <CardDescription>
+                  Find prospects using AI-powered search
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <Button asChild className="w-full">
+                  <Link href="/leads/search">Start Search</Link>
+                </Button>
+              </CardContent>
+            </Card>
+
+            <Card className="hover:shadow-lg transition-shadow">
+              <CardHeader>
+                <CardTitle>My Leads</CardTitle>
+                <CardDescription>
+                  View and manage your saved leads
+                </CardDescription>
             </CardHeader>
             <CardContent>
-              <Button asChild className="w-full bg-[#37322F] hover:bg-[#37322F]/90 text-white">
-                <Link href="/leads/search">Start Search</Link>
-              </Button>
-            </CardContent>
-          </Card>
-
-          <Card className="border-[rgba(55,50,47,0.12)] bg-white hover:shadow-lg transition-shadow">
-            <CardHeader>
-              <CardTitle className="text-xl text-[#37322F]">My Leads</CardTitle>
-              <CardDescription className="text-[#605A57]">
-                View and manage your saved leads
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Button asChild variant="outline" className="w-full border-[rgba(55,50,47,0.12)] text-[#37322F] hover:bg-[rgba(55,50,47,0.04)]">
+              <Button asChild variant="outline" className="w-full">
                 <Link href="/leads">View Leads</Link>
               </Button>
             </CardContent>
           </Card>
 
-          <Card className="border-[rgba(55,50,47,0.12)] bg-white hover:shadow-lg transition-shadow">
+          <Card className="hover:shadow-lg transition-shadow">
             <CardHeader>
-              <CardTitle className="text-xl text-[#37322F]">Lead Lists</CardTitle>
-              <CardDescription className="text-[#605A57]">
-                Organize leads into lists
+              <CardTitle>AI Assistant</CardTitle>
+              <CardDescription>
+                Chat with AI to research leads
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <Button asChild variant="outline" className="w-full border-[rgba(55,50,47,0.12)] text-[#37322F] hover:bg-[rgba(55,50,47,0.04)]">
-                <Link href="/leads/lists">Manage Lists</Link>
+              <Button asChild variant="outline" className="w-full">
+                <Link href="/api/assistant/new-conversation">Open Assistant</Link>
               </Button>
             </CardContent>
           </Card>
@@ -74,67 +77,67 @@ export default async function DashboardPage() {
 
         {/* Stats Overview */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-          <Card className="border-[rgba(55,50,47,0.12)] bg-white">
+          <Card>
             <CardHeader className="pb-2">
-              <CardDescription className="text-[#605A57] text-xs font-medium">
+              <CardDescription className="text-xs font-medium">
                 Total Leads
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-semibold text-[#37322F]">0</div>
-              <p className="text-xs text-[#605A57] mt-1">Leads saved</p>
+              <div className="text-2xl font-bold">0</div>
+              <p className="text-xs text-muted-foreground mt-1">Leads saved</p>
             </CardContent>
           </Card>
 
-          <Card className="border-[rgba(55,50,47,0.12)] bg-white">
+          <Card>
             <CardHeader className="pb-2">
-              <CardDescription className="text-[#605A57] text-xs font-medium">
+              <CardDescription className="text-xs font-medium">
                 Searches
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-semibold text-[#37322F]">0</div>
-              <p className="text-xs text-[#605A57] mt-1">This month</p>
+              <div className="text-2xl font-bold">0</div>
+              <p className="text-xs text-muted-foreground mt-1">This month</p>
             </CardContent>
           </Card>
 
-          <Card className="border-[rgba(55,50,47,0.12)] bg-white">
+          <Card>
             <CardHeader className="pb-2">
-              <CardDescription className="text-[#605A57] text-xs font-medium">
+              <CardDescription className="text-xs font-medium">
                 API Usage
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-semibold text-[#37322F]">0</div>
-              <p className="text-xs text-[#605A57] mt-1">Calls today</p>
+              <div className="text-2xl font-bold">0</div>
+              <p className="text-xs text-muted-foreground mt-1">Calls today</p>
             </CardContent>
           </Card>
 
-          <Card className="border-[rgba(55,50,47,0.12)] bg-white">
+          <Card>
             <CardHeader className="pb-2">
-              <CardDescription className="text-[#605A57] text-xs font-medium">
-                Active Lists
+              <CardDescription className="text-xs font-medium">
+                Campaigns
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-semibold text-[#37322F]">0</div>
-              <p className="text-xs text-[#605A57] mt-1">Lead lists</p>
+              <div className="text-2xl font-bold">0</div>
+              <p className="text-xs text-muted-foreground mt-1">Active</p>
             </CardContent>
           </Card>
         </div>
 
         {/* Recent Activity */}
-        <Card className="border-[rgba(55,50,47,0.12)] bg-white">
+        <Card>
           <CardHeader>
-            <CardTitle className="text-xl text-[#37322F]">Recent Activity</CardTitle>
-            <CardDescription className="text-[#605A57]">
+            <CardTitle>Recent Activity</CardTitle>
+            <CardDescription>
               Your latest searches and saved leads
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="text-center py-8 text-[#605A57]">
+            <div className="text-center py-8 text-muted-foreground">
               <p>No recent activity</p>
-              <Button asChild variant="link" className="mt-2 text-[#37322F]">
+              <Button asChild variant="link" className="mt-2">
                 <Link href="/leads/search">Start searching for leads</Link>
               </Button>
             </div>
@@ -142,5 +145,6 @@ export default async function DashboardPage() {
         </Card>
       </div>
     </div>
+    </>
   );
 }

@@ -723,25 +723,25 @@ export function ChatClient({ conversationId, user }: ChatClientProps) {
   };
 
   return (
-    <div className="flex h-screen bg-slate-700 dark:bg-slate-700">
-      {/* Sidebar - Clean minimal design */}
+    <div className="flex h-screen bg-[#212121]">
+      {/* Sidebar - Dark design matching ChatGPT */}
       <div
         className={cn(
-          "flex flex-col border-r border-slate-600 bg-slate-700 transition-all duration-300 ease-in-out",
-          isSidebarExpanded ? "w-64" : "w-16",
+          "flex flex-col border-r border-neutral-700/50 bg-[#212121] transition-all duration-300 ease-in-out",
+          isSidebarExpanded ? "w-72" : "w-16",
         )}
       >
         <div className="flex h-full flex-col">
           {/* New Chat Button */}
-          <div className="p-3 border-b border-slate-200">
+          <div className="p-3 border-b border-neutral-700/50">
             <Button
               onClick={createNewConversation}
               size="sm"
               className={cn(
-                "w-full gap-2 bg-slate-500 hover:bg-slate-600 text-white transition-all",
+                "w-full gap-2 bg-neutral-800/40 hover:bg-neutral-700/60 text-neutral-200 transition-all font-medium rounded-lg border border-neutral-700/50",
                 isSidebarExpanded
-                  ? "justify-start px-3"
-                  : "justify-center px-2",
+                  ? "justify-start px-4 py-2.5"
+                  : "justify-center px-2 py-2.5",
               )}
             >
               <Plus className="h-4 w-4 shrink-0" />
@@ -753,19 +753,19 @@ export function ChatClient({ conversationId, user }: ChatClientProps) {
 
           {/* Conversations List - Always visible, no collapsible */}
           <div className="flex-1 min-h-0 overflow-hidden">
-            <ScrollArea className="h-full px-3 py-2">
+            <ScrollArea className="h-full px-3 py-3">
               <div className="space-y-1.5 pb-2">
                 {isConversationsLoading ? (
                   <div className="space-y-1.5">
                     {Array.from({ length: 5 }).map((_, idx) => (
                       <div
                         key={`skeleton-${idx}`}
-                        className="h-[60px] animate-pulse rounded-lg bg-slate-100"
+                        className="h-[58px] animate-pulse rounded-lg bg-neutral-800/50"
                       />
                     ))}
                   </div>
                 ) : conversations.length === 0 ? (
-                  <div className="text-center text-sm text-slate-500 py-6">
+                  <div className="text-center text-sm text-neutral-400 py-6">
                     No conversations yet.
                   </div>
                 ) : (
@@ -774,10 +774,10 @@ export function ChatClient({ conversationId, user }: ChatClientProps) {
                       <div
                         key={conv.id}
                         className={cn(
-                          "group/item relative rounded-lg transition-all",
+                          "group/item relative rounded-lg transition-all cursor-pointer",
                           activeConvId === conv.id
-                            ? "bg-slate-50 border border-slate-200 shadow-sm"
-                            : "hover:bg-slate-50 border border-transparent",
+                            ? "bg-neutral-800 border border-neutral-700"
+                            : "hover:bg-neutral-800/50 border border-transparent",
                         )}
                       >
                         {renamingConvId === conv.id ? (
@@ -791,18 +791,18 @@ export function ChatClient({ conversationId, user }: ChatClientProps) {
                                 if (e.key === "Escape")
                                   cancelRenameConversation();
                               }}
-                              className="w-full px-2 py-1 text-sm border border-slate-300 rounded focus:outline-none focus:ring-2 focus:ring-slate-400"
+                              className="w-full px-3 py-2 text-sm bg-neutral-700 border border-neutral-600 rounded-lg focus:outline-none focus:ring-1 focus:ring-neutral-500 text-white"
                               autoFocus
                               onClick={(e) => e.stopPropagation()}
                             />
-                            <div className="flex gap-1 mt-1">
+                            <div className="flex gap-2 mt-2">
                               <Button
                                 size="sm"
                                 onClick={(e) => {
                                   e.stopPropagation();
                                   saveRenameConversation();
                                 }}
-                                className="h-6 px-2 text-xs bg-slate-500 hover:bg-slate-600"
+                                className="h-7 px-3 text-xs bg-neutral-700 hover:bg-neutral-600 text-white font-medium rounded-lg"
                               >
                                 Save
                               </Button>
@@ -813,7 +813,7 @@ export function ChatClient({ conversationId, user }: ChatClientProps) {
                                   e.stopPropagation();
                                   cancelRenameConversation();
                                 }}
-                                className="h-6 px-2 text-xs"
+                                className="h-7 px-3 text-xs text-neutral-300 hover:bg-neutral-700 rounded-lg"
                               >
                                 Cancel
                               </Button>
@@ -826,20 +826,20 @@ export function ChatClient({ conversationId, user }: ChatClientProps) {
                               className={cn(
                                 "w-full flex items-center gap-3 px-3 py-2.5 text-left text-sm transition-colors min-w-0",
                                 activeConvId === conv.id
-                                  ? "text-slate-900 font-normal"
-                                  : "text-slate-700",
+                                  ? "text-white font-medium"
+                                  : "text-neutral-300 font-normal",
                               )}
                             >
                               {!isSidebarExpanded ? (
                                 <div className="w-full flex justify-center">
-                                  <div className="h-2 w-2 rounded-full bg-slate-500" />
+                                  <div className="h-2 w-2 rounded-full bg-neutral-500" />
                                 </div>
                               ) : (
                                 <div className="flex-1 min-w-0">
                                   <span className="block truncate leading-snug">
                                     {conv.title}
                                   </span>
-                                  <span className="text-xs text-slate-500 mt-0.5 block">
+                                  <span className="text-xs text-neutral-500 mt-0.5 block">
                                     {new Date(
                                       conv.createdAt,
                                     ).toLocaleDateString("en-US", {
@@ -851,13 +851,13 @@ export function ChatClient({ conversationId, user }: ChatClientProps) {
                               )}
                             </button>
                             {isSidebarExpanded && (
-                              <div className="absolute top-1 right-1 opacity-30 group-hover/item:opacity-100 transition-opacity">
+                              <div className="absolute top-1.5 right-1.5 opacity-0 group-hover/item:opacity-100 transition-opacity">
                                 <DropdownMenu>
                                   <DropdownMenuTrigger asChild>
                                     <Button
                                       variant="ghost"
                                       size="icon"
-                                      className="h-7 w-7 text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-md"
+                                      className="h-7 w-7 text-neutral-400 hover:text-white hover:bg-neutral-700 rounded-lg"
                                       onClick={(e) => {
                                         e.preventDefault();
                                         e.stopPropagation();
@@ -947,33 +947,36 @@ export function ChatClient({ conversationId, user }: ChatClientProps) {
           )}*/}
 
           {/* Bottom Section - User and Expand Button */}
-          <div className="border-t border-slate-200">
+          <div className="border-t border-neutral-700/50">
             {/* User Info */}
             {user.name && (
               <div className="p-3 flex items-center justify-between gap-2">
                 {isSidebarExpanded ? (
                   <>
-                    <div className="flex  items-center gap-2 min-w-0 flex-1">
+                    <div className="flex items-center gap-2 min-w-0 flex-1">
                       <Avatar className="h-8 w-8 shrink-0">
                         {user.image && (
                           <AvatarImage src={user.image} alt={user.name || ""} />
                         )}
-                        <AvatarFallback className="bg-slate-700 dark:bg-slate-700 text-slate-700 text-sm">
+                        <AvatarFallback className="bg-neutral-700 text-neutral-200 text-sm">
                           {user.name?.charAt(0).toUpperCase() ||
                             user.email?.charAt(0).toUpperCase() ||
                             "U"}
                         </AvatarFallback>
                       </Avatar>
                       <div className="min-w-0 flex-1">
-                        <p className="text-sm font-normal text-slate-700 truncate">
+                        <p className="text-sm font-medium text-neutral-200 truncate">
                           {user.name}
+                        </p>
+                        <p className="text-xs text-neutral-500 truncate">
+                          {user.email}
                         </p>
                       </div>
                       <Link
                         href="/settings"
-                        className="shrink-0 p-1.5 hover:bg-slate-100 rounded-lg transition-colors"
+                        className="shrink-0 p-1.5 hover:bg-neutral-800 rounded-lg transition-colors"
                       >
-                        <Settings className="h-4 w-4 text-slate-500" />
+                        <Settings className="h-4 w-4 text-neutral-400" />
                       </Link>
                     </div>
                   </>
@@ -982,7 +985,7 @@ export function ChatClient({ conversationId, user }: ChatClientProps) {
                     {user.image && (
                       <AvatarImage src={user.image} alt={user.name || ""} />
                     )}
-                    <AvatarFallback className="bg-slate-100 text-slate-700 text-sm">
+                    <AvatarFallback className="bg-neutral-700 text-neutral-200 text-sm">
                       {user.name?.charAt(0).toUpperCase() ||
                         user.email?.charAt(0).toUpperCase() ||
                         "U"}
@@ -993,12 +996,12 @@ export function ChatClient({ conversationId, user }: ChatClientProps) {
             )}
 
             {/* Expand/Collapse Button at Bottom */}
-            <div className="border-t border-slate-200 p-2">
+            <div className="border-t border-neutral-700/50 p-2">
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={() => setIsSidebarExpanded(!isSidebarExpanded)}
-                className="w-full hover:bg-slate-100 text-slate-600"
+                className="w-full hover:bg-neutral-800 text-neutral-400 hover:text-neutral-200 rounded-lg"
               >
                 {isSidebarExpanded ? (
                   <>

@@ -1,5 +1,6 @@
 import { auth } from "@/auth"
 import { redirect } from "next/navigation"
+import { NavbarWrapper } from "@/components/layout/navbar-wrapper"
 import { Send } from "lucide-react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 
@@ -11,11 +12,14 @@ export default async function CampaignsPage() {
   }
 
   return (
-    <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
-      <div>
-        <h1 className="text-3xl font-semibold text-[#37322F] font-serif">Email Campaigns</h1>
-        <p className="text-[#605A57] mt-2">Create and manage email outreach campaigns</p>
-      </div>
+    <>
+      <NavbarWrapper />
+      <div className="min-h-screen bg-background">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <div className="mb-8">
+            <h1 className="text-3xl font-bold text-foreground">Email Campaigns</h1>
+            <p className="text-muted-foreground mt-2">Create and manage email outreach campaigns</p>
+          </div>
 
       <Card className="border-[rgba(55,50,47,0.12)]">
         <CardHeader>
@@ -40,6 +44,8 @@ export default async function CampaignsPage() {
           </ul>
         </CardContent>
       </Card>
-    </div>
+        </div>
+      </div>
+    </>
   )
 }

@@ -61,11 +61,11 @@ export function MessageBubble({
       isUser ? "justify-end" : "justify-start"
     )}>
       <div className={cn(
-        "text-[15px] leading-relaxed",
-        isUser ? "text-neutral-300" : "text-neutral-100"
+        "text-[15px] leading-relaxed font-sans",
+        isUser ? "text-foreground/80" : "text-foreground"
       )}>
           {!message.parts || message.parts.length === 0 ? (
-            <div className="text-neutral-400 italic">No content</div>
+            <div className="text-muted-foreground italic">No content</div>
           ) : (
             message.parts.map((part, index) => {
               
@@ -85,24 +85,24 @@ export function MessageBubble({
                         // eslint-disable-next-line @typescript-eslint/no-unused-vars
                         table: ({ node, ...props }) => (
                           <div className="overflow-x-auto my-4 w-full -mx-4 px-4">
-                            <table className="min-w-full divide-y divide-neutral-300 border border-neutral-300 rounded-lg overflow-hidden text-xs" {...props} />
+                            <table className="min-w-full divide-y divide-border border border-border rounded-lg overflow-hidden text-xs" {...props} />
                           </div>
                         ),
                         // eslint-disable-next-line @typescript-eslint/no-unused-vars
                         thead: ({ node, ...props }) => (
-                          <thead className="bg-neutral-100" {...props} />
+                          <thead className="bg-secondary" {...props} />
                         ),
                         // eslint-disable-next-line @typescript-eslint/no-unused-vars
                         th: ({ node, ...props }) => (
-                          <th className="px-3 py-2 text-left text-xs font-semibold text-neutral-800 uppercase tracking-wide whitespace-nowrap" {...props} />
+                          <th className="px-3 py-2 text-left text-xs font-semibold text-foreground uppercase tracking-wide whitespace-nowrap" {...props} />
                         ),
                         // eslint-disable-next-line @typescript-eslint/no-unused-vars
                         td: ({ node, ...props }) => (
-                          <td className="px-3 py-2 text-xs text-neutral-900 border-t border-neutral-200 whitespace-nowrap" {...props} />
+                          <td className="px-3 py-2 text-xs text-foreground border-t border-border whitespace-nowrap" {...props} />
                         ),
                         // eslint-disable-next-line @typescript-eslint/no-unused-vars
                         tr: ({ node, ...props }) => (
-                          <tr className="hover:bg-neutral-50 transition-colors" {...props} />
+                          <tr className="hover:bg-secondary/50 transition-colors" {...props} />
                         ),
                         // Code blocks with syntax highlighting
                         code: ({ className, children, ...props }: React.HTMLAttributes<HTMLElement> & { children?: React.ReactNode }) => {
@@ -111,23 +111,23 @@ export function MessageBubble({
                           const isBlockCode = match !== null;
                           return isBlockCode ? (
                             <div className="relative group my-4">
-                              <div className="flex items-center justify-between bg-neutral-800 text-neutral-200 px-4 py-2 rounded-t-lg text-xs font-mono">
+                              <div className="flex items-center justify-between bg-muted text-muted-foreground px-4 py-2 rounded-t-lg text-xs font-mono">
                                 <span>{match ? match[1].toUpperCase() : 'CODE'}</span>
                                 <button
                                   onClick={() => {
                                     navigator.clipboard.writeText(String(children));
                                   }}
-                                  className="opacity-0 group-hover:opacity-100 transition-opacity px-2 py-1 bg-neutral-700 hover:bg-neutral-600 rounded text-xs"
+                                  className="opacity-0 group-hover:opacity-100 transition-opacity px-2 py-1 bg-muted-foreground/20 hover:bg-muted-foreground/30 rounded text-xs"
                                 >
                                   Copy
                                 </button>
                               </div>
-                              <code className={cn(className, "block bg-neutral-900 text-neutral-100 p-4 rounded-b-lg overflow-x-auto")} {...props}>
+                              <code className={cn(className, "block bg-muted text-foreground p-4 rounded-b-lg overflow-x-auto")} {...props}>
                                 {children}
                               </code>
                             </div>
                           ) : (
-                            <code className="bg-neutral-100 text-neutral-700 px-1.5 py-0.5 rounded text-sm font-mono" {...props}>
+                            <code className="bg-secondary text-foreground px-1.5 py-0.5 rounded text-sm font-mono" {...props}>
                               {children}
                             </code>
                           );
@@ -140,7 +140,7 @@ export function MessageBubble({
                         // Links
                         // eslint-disable-next-line @typescript-eslint/no-unused-vars
                         a: ({ node, ...props }) => (
-                          <a className="text-blue-600 hover:underline font-medium" target="_blank" rel="noopener noreferrer" {...props} />
+                          <a className="text-primary hover:underline font-medium" target="_blank" rel="noopener noreferrer" {...props} />
                         ),
                         // Paragraphs
                         // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -163,34 +163,34 @@ export function MessageBubble({
                         // Blockquotes
                         // eslint-disable-next-line @typescript-eslint/no-unused-vars
                         blockquote: ({ node, ...props }) => (
-                          <blockquote className="border-l-4 border-neutral-400 pl-4 my-4 italic text-neutral-600" {...props} />
+                          <blockquote className="border-l-4 border-primary pl-4 my-4 italic text-muted-foreground" {...props} />
                         ),
                         // Headings
                         // eslint-disable-next-line @typescript-eslint/no-unused-vars
                         h1: ({ node, ...props }) => (
-                          <h1 className="text-2xl font-bold mt-6 mb-3 text-neutral-900" {...props} />
+                          <h1 className="text-2xl font-bold mt-6 mb-3 text-foreground" {...props} />
                         ),
                         // eslint-disable-next-line @typescript-eslint/no-unused-vars
                         h2: ({ node, ...props }) => (
-                          <h2 className="text-xl font-bold mt-5 mb-2 text-neutral-900" {...props} />
+                          <h2 className="text-xl font-bold mt-5 mb-2 text-foreground" {...props} />
                         ),
                         // eslint-disable-next-line @typescript-eslint/no-unused-vars
                         h3: ({ node, ...props }) => (
-                          <h3 className="text-lg font-semibold mt-4 mb-2 text-neutral-900" {...props} />
+                          <h3 className="text-lg font-semibold mt-4 mb-2 text-foreground" {...props} />
                         ),
                         // eslint-disable-next-line @typescript-eslint/no-unused-vars
                         h4: ({ node, ...props }) => (
-                          <h4 className="text-base font-semibold mt-3 mb-2 text-neutral-900" {...props} />
+                          <h4 className="text-base font-semibold mt-3 mb-2 text-foreground" {...props} />
                         ),
                         // Horizontal rule
                         // eslint-disable-next-line @typescript-eslint/no-unused-vars
                         hr: ({ node, ...props }) => (
-                          <hr className="my-6 border-neutral-200" {...props} />
+                          <hr className="my-6 border-border" {...props} />
                         ),
                         // Strong/Bold
                         // eslint-disable-next-line @typescript-eslint/no-unused-vars
                         strong: ({ node, ...props }) => (
-                          <strong className="font-semibold text-neutral-900" {...props} />
+                          <strong className="font-semibold text-foreground" {...props} />
                         ),
                         // Emphasis/Italic
                         // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -219,26 +219,26 @@ export function MessageBubble({
                 if (toolPart.toolName === "searchRocketReach" && toolPart.output?.leads) {
                   return (
                     <div key={index} className="mt-3 space-y-2">
-                      <div className="text-sm font-normal text-neutral-700 mb-2">
+                      <div className="text-sm font-normal text-foreground mb-2">
                         Found {toolPart.output.leads.length} lead(s):
                       </div>
                       {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
                       {toolPart.output.leads.slice(0, 5).map((lead: any, idx: number) => (
-                        <div key={idx} className="p-3 rounded-lg border border-neutral-200 bg-white hover:shadow-sm transition-shadow">
+                        <div key={idx} className="p-3 rounded-lg border bg-card hover:shadow-sm transition-shadow">
                           <div className="flex items-start gap-3">
-                            <div className="shrink-0 w-10 h-10 rounded-full bg-neutral-200 flex items-center justify-center text-neutral-700 font-medium">
+                            <div className="shrink-0 w-10 h-10 rounded-full bg-secondary flex items-center justify-center text-foreground font-medium">
                               {lead.fullName?.charAt(0) || lead.firstName?.charAt(0) || '?'}
                             </div>
                             <div className="flex-1 min-w-0">
-                              <h4 className="font-medium text-neutral-900">{lead.fullName || 'Unknown'}</h4>
-                              <p className="text-sm text-neutral-600">{lead.title || 'No title'}</p>
-                              {lead.company && <p className="text-sm text-neutral-500">{lead.company}</p>}
+                              <h4 className="font-medium text-foreground">{lead.fullName || 'Unknown'}</h4>
+                              <p className="text-sm text-muted-foreground">{lead.title || 'No title'}</p>
+                              {lead.company && <p className="text-sm text-muted-foreground">{lead.company}</p>}
                               <div className="flex items-center gap-2 mt-1">
                                 {lead.location && (
-                                  <span className="text-xs text-neutral-400">📍 {lead.location}</span>
+                                  <span className="text-xs text-muted-foreground">📍 {lead.location}</span>
                                 )}
                                 {lead.linkedinUrl && (
-                                  <a href={lead.linkedinUrl} target="_blank" rel="noopener noreferrer" className="text-xs text-blue-600 hover:underline">
+                                  <a href={lead.linkedinUrl} target="_blank" rel="noopener noreferrer" className="text-xs text-primary hover:underline">
                                     LinkedIn →
                                   </a>
                                 )}
@@ -248,7 +248,7 @@ export function MessageBubble({
                         </div>
                       ))}
                       {toolPart.output.leads.length > 5 && (
-                        <p className="text-xs text-neutral-500 italic">
+                        <p className="text-xs text-muted-foreground italic">
                           ...and {toolPart.output.leads.length - 5} more
                         </p>
                       )}
@@ -260,22 +260,22 @@ export function MessageBubble({
                 if (toolPart.toolName === "lookupRocketReachProfile" && toolPart.output?.lead) {
                   const lead = toolPart.output.lead;
                   return (
-                    <div key={index} className="mt-3 p-4 rounded-lg border border-green-200 bg-green-50/50">
-                      <div className="text-sm font-normal text-green-900 mb-3 flex items-center gap-2">
-                        <CheckCircle2 className="h-4 w-4" />
+                    <div key={index} className="mt-3 p-4 rounded-lg border border-primary/20 bg-primary/5">
+                      <div className="text-sm font-normal text-foreground mb-3 flex items-center gap-2">
+                        <CheckCircle2 className="h-4 w-4 text-primary" />
                         Contact details found
                       </div>
                       <div className="space-y-2 text-sm">
                         {lead.email && (
                           <div className="flex items-center gap-2">
-                            <span className="text-neutral-500">Email:</span>
-                            <span className="font-normal text-neutral-900">{lead.email}</span>
+                            <span className="text-muted-foreground">Email:</span>
+                            <span className="font-normal text-foreground">{lead.email}</span>
                           </div>
                         )}
                         {lead.phone && (
                           <div className="flex items-center gap-2">
-                            <span className="text-neutral-500">Phone:</span>
-                            <span className="font-normal text-neutral-900">{lead.phone}</span>
+                            <span className="text-muted-foreground">Phone:</span>
+                            <span className="font-normal text-foreground">{lead.phone}</span>
                           </div>
                         )}
                       </div>
@@ -286,9 +286,9 @@ export function MessageBubble({
                 // For saveLeads, show success message
                 if (toolPart.toolName === "saveLeads" && toolPart.output?.saved) {
                   return (
-                    <div key={index} className="mt-3 p-3 rounded-lg border border-blue-200 bg-blue-50/50 text-sm">
-                      <div className="flex items-center gap-2 text-blue-900">
-                        <CheckCircle2 className="h-4 w-4" />
+                    <div key={index} className="mt-3 p-3 rounded-lg border border-primary/20 bg-primary/5 text-sm">
+                      <div className="flex items-center gap-2 text-foreground">
+                        <CheckCircle2 className="h-4 w-4 text-primary" />
                         <span>Saved {toolPart.output.saved} lead(s) to your database</span>
                       </div>
                     </div>
@@ -311,7 +311,7 @@ export function MessageBubble({
                 variant="ghost"
                 size="icon"
                 onClick={() => onCopy(message)}
-                className="h-7 w-7 text-neutral-600 hover:bg-neutral-100 hover:text-neutral-900"
+                className="h-7 w-7 text-muted-foreground hover:bg-secondary hover:text-foreground"
               >
                 <Copy className="h-3.5 w-3.5" />
               </Button>

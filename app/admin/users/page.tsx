@@ -1,5 +1,6 @@
 import { auth } from "@/auth";
 import { redirect } from "next/navigation";
+import { NavbarWrapper } from "@/components/layout/navbar-wrapper";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { getDb, Collections } from "@/lib/db";
 import { Users } from "lucide-react";
@@ -98,63 +99,65 @@ export default async function UsersManagementPage() {
   const userCount = serializedUsers.filter((u) => u.role === "user" || !u.role).length;
 
   return (
-    <div className="min-h-screen bg-[#F7F5F3]">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-semibold text-[#37322F] font-serif">User Management</h1>
-          <p className="text-[#605A57] mt-2">
-            Manage user accounts and permissions
-          </p>
-        </div>
+    <>
+      <NavbarWrapper />
+      <div className="min-h-screen bg-background">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          {/* Header */}
+          <div className="mb-8">
+            <h1 className="text-3xl font-semibold text-foreground">User Management</h1>
+            <p className="text-muted-foreground mt-2">
+              Manage user accounts and permissions
+            </p>
+          </div>
 
         {/* Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-          <Card className="border-[rgba(55,50,47,0.12)] bg-white">
-            <CardHeader className="pb-2">
-              <CardDescription className="text-[#605A57] text-xs font-medium">
-                Total Users
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+          <Card>
+            <CardHeader className="pb-3">
+              <CardDescription className="text-xs font-medium">
+                TOTAL USERS
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-semibold text-[#37322F]">{users.length}</div>
-              <p className="text-xs text-[#605A57] mt-1">Registered accounts</p>
+              <div className="text-2xl font-semibold text-foreground">{users.length}</div>
+              <p className="text-xs text-muted-foreground mt-1">Registered accounts</p>
             </CardContent>
           </Card>
 
-          <Card className="border-[rgba(55,50,47,0.12)] bg-white">
+          <Card>
             <CardHeader className="pb-2">
-              <CardDescription className="text-[#605A57] text-xs font-medium">
+              <CardDescription className="text-xs font-medium">
                 Administrators
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-semibold text-[#37322F]">{adminCount}</div>
-              <p className="text-xs text-[#605A57] mt-1">Admin users</p>
+              <div className="text-2xl font-semibold text-foreground">{adminCount}</div>
+              <p className="text-xs text-muted-foreground mt-1">Admin users</p>
             </CardContent>
           </Card>
 
-          <Card className="border-[rgba(55,50,47,0.12)] bg-white">
+          <Card>
             <CardHeader className="pb-2">
-              <CardDescription className="text-[#605A57] text-xs font-medium">
+              <CardDescription className="text-xs font-medium">
                 Regular Users
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-semibold text-[#37322F]">{userCount}</div>
-              <p className="text-xs text-[#605A57] mt-1">Standard accounts</p>
+              <div className="text-2xl font-semibold text-foreground">{userCount}</div>
+              <p className="text-xs text-muted-foreground mt-1">Standard accounts</p>
             </CardContent>
           </Card>
         </div>
 
         {/* Users Table */}
-        <Card className="border-[rgba(55,50,47,0.12)] bg-white">
+        <Card>
           <CardHeader>
-            <CardTitle className="text-xl text-[#37322F] flex items-center gap-2">
+            <CardTitle className="text-xl flex items-center gap-2">
               <Users className="w-5 h-5" />
               All Users
             </CardTitle>
-            <CardDescription className="text-[#605A57]">
+            <CardDescription>
               Manage roles and permissions for all system users
             </CardDescription>
           </CardHeader>
@@ -164,17 +167,17 @@ export default async function UsersManagementPage() {
         </Card>
 
         {/* Role Management Info */}
-        <Card className="border-[rgba(55,50,47,0.12)] bg-white mt-6">
+        <Card className="mt-6">
           <CardHeader>
-            <CardTitle className="text-lg text-[#37322F]">Role Management Guide</CardTitle>
+            <CardTitle className="text-lg">Role Management Guide</CardTitle>
           </CardHeader>
-          <CardContent className="space-y-3 text-sm text-[#605A57]">
+          <CardContent className="space-y-3 text-sm text-muted-foreground">
             <p>
-              <strong className="text-[#37322F]">Admin:</strong> Full system access including user management,
-              settings, and all administrative functions.
+              <strong className="text-foreground">Admin:</strong> Full system access including user management,
+              settings, and analytics.
             </p>
             <p>
-              <strong className="text-[#37322F]">User:</strong> Standard access to lead search, saved leads,
+              <strong className="text-foreground">User:</strong> Standard access to lead search, saved leads,
               and personal dashboard.
             </p>
             <p>
@@ -185,5 +188,6 @@ export default async function UsersManagementPage() {
         </Card>
       </div>
     </div>
+    </>
   );
 }

@@ -1,6 +1,8 @@
 "use client"
 
 import { useState } from "react"
+import { ChevronDown } from "lucide-react"
+import { cn } from "@/lib/utils"
 
 interface FAQItem {
   question: string
@@ -9,51 +11,36 @@ interface FAQItem {
 
 const faqData: FAQItem[] = [
   {
-    question: "What is Brillance and who is it for?",
+    question: "What is LogiGrow and who is it for?",
     answer:
-      "Brillance is a comprehensive billing automation platform designed for businesses that need custom contract management. It's perfect for SaaS companies, service providers, and enterprises looking to streamline their billing processes.",
+      "LogiGrow is an AI-powered lead generation platform designed for sales teams, marketers, and businesses looking to streamline their prospecting process. It's perfect for B2B companies, agencies, and growth teams that need to find and connect with qualified prospects efficiently.",
   },
   {
-    question: "How does the custom contract billing work?",
+    question: "How does the AI-powered search work?",
     answer:
-      "Our platform automatically processes your custom contracts, calculates billing amounts based on your specific terms, and generates invoices. You can set up complex pricing structures, usage-based billing, and custom billing cycles.",
+      "Our AI understands natural language queries. Simply describe the type of prospects you're looking for (e.g., 'Find CTOs at SaaS companies in San Francisco'), and our AI will search our database, verify contact information, and return qualified leads with verified emails and phone numbers.",
   },
   {
-    question: "Can I integrate Brillance with my existing tools?",
+    question: "Can I integrate LogiGrow with my existing tools?",
     answer:
-      "Yes! Brillance integrates seamlessly with popular CRM systems, accounting software, and payment processors. We support APIs and webhooks for custom integrations with your existing workflow.",
+      "Yes! LogiGrow integrates seamlessly with popular CRM systems, email platforms, and marketing automation tools. We support APIs and webhooks for custom integrations with your existing workflow.",
   },
   {
     question: "What kind of support do you provide?",
     answer:
-      "We offer 24/7 customer support, dedicated account managers for enterprise clients, comprehensive documentation, and onboarding assistance to help you get started quickly.",
+      "We offer 24/7 customer support via email, dedicated account managers for enterprise clients, comprehensive documentation, and onboarding assistance to help you get started quickly.",
   },
   {
-    question: "Is my data secure with Brillance?",
+    question: "Is my data secure with LogiGrow?",
     answer:
       "Absolutely. We use enterprise-grade security measures including end-to-end encryption, SOC 2 compliance, and regular security audits. Your data is stored in secure, redundant data centers.",
   },
   {
-    question: "How do I get started with Brillance?",
+    question: "How do I get started with LogiGrow?",
     answer:
-      "Getting started is simple! Sign up for our free trial, connect your existing systems, and our onboarding team will help you set up your first custom billing workflow within 24 hours.",
+      "Getting started is simple! Sign up for our free trial, connect your existing systems, and our onboarding team will help you set up your first lead search within 24 hours.",
   },
 ]
-
-function ChevronDownIcon({ className }: { className?: string }) {
-  return (
-    <svg
-      className={className}
-      width="24"
-      height="24"
-      viewBox="0 0 24 24"
-      fill="none"
-      xmlns="http://www.w3.org/2000/svg"
-    >
-      <path d="m6 9 6 6 6-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
-  )
-}
 
 export default function FAQSection() {
   const [openItems, setOpenItems] = useState<number[]>([])
@@ -63,60 +50,52 @@ export default function FAQSection() {
   }
 
   return (
-    <div className="w-full flex justify-center items-start">
-      <div className="flex-1 px-4 md:px-12 py-16 md:py-20 flex flex-col lg:flex-row justify-start items-start gap-6 lg:gap-12">
-        {/* Left Column - Header */}
-        <div className="w-full lg:flex-1 flex flex-col justify-center items-start gap-4 lg:py-5">
-          <div className="w-full flex flex-col justify-center text-[#49423D] font-semibold leading-tight md:leading-[44px] font-sans text-4xl tracking-tight">
+    <section className="py-20 px-4 sm:px-6 lg:px-8 bg-background">
+      <div className="max-w-4xl mx-auto">
+        <div className="text-center mb-12">
+          <h2 className="text-4xl sm:text-5xl font-bold text-foreground mb-4 font-sans">
             Frequently Asked Questions
-          </div>
-          <div className="w-full text-[#605A57] text-base font-normal leading-7 font-sans">
-            Explore your data, build your dashboard,
-            <br className="hidden md:block" />
-            bring your team together.
-          </div>
+          </h2>
+          <p className="text-xl text-muted-foreground font-sans">
+            Everything you need to know about LogiGrow
+          </p>
         </div>
 
-        {/* Right Column - FAQ Items */}
-        <div className="w-full lg:flex-1 flex flex-col justify-center items-center">
-          <div className="w-full flex flex-col">
-            {faqData.map((item, index) => {
-              const isOpen = openItems.includes(index)
+        <div className="space-y-2">
+          {faqData.map((item, index) => {
+            const isOpen = openItems.includes(index)
 
-              return (
-                <div key={index} className="w-full border-b border-[rgba(73,66,61,0.16)] overflow-hidden">
-                  <button
-                    onClick={() => toggleItem(index)}
-                    className="w-full px-5 py-[18px] flex justify-between items-center gap-5 text-left hover:bg-[rgba(73,66,61,0.02)] transition-colors duration-200"
-                    aria-expanded={isOpen}
-                  >
-                    <div className="flex-1 text-[#49423D] text-base font-medium leading-6 font-sans">
-                      {item.question}
-                    </div>
-                    <div className="flex justify-center items-center">
-                      <ChevronDownIcon
-                        className={`w-6 h-6 text-[rgba(73,66,61,0.60)] transition-transform duration-300 ease-in-out ${
-                          isOpen ? "rotate-180" : "rotate-0"
-                        }`}
-                      />
-                    </div>
-                  </button>
+            return (
+              <div key={index} className="border rounded-lg overflow-hidden">
+                <button
+                  onClick={() => toggleItem(index)}
+                  className="w-full px-6 py-4 flex justify-between items-center gap-4 text-left hover:bg-secondary transition-colors"
+                  aria-expanded={isOpen}
+                >
+                  <span className="font-medium text-foreground font-sans">{item.question}</span>
+                  <ChevronDown
+                    className={cn(
+                      "h-5 w-5 text-muted-foreground shrink-0 transition-transform",
+                      isOpen && "rotate-180"
+                    )}
+                  />
+                </button>
 
-                  <div
-                    className={`overflow-hidden transition-all duration-300 ease-in-out ${
-                      isOpen ? "max-h-96 opacity-100" : "max-h-0 opacity-0"
-                    }`}
-                  >
-                    <div className="px-5 pb-[18px] text-[#605A57] text-sm font-normal leading-6 font-sans">
-                      {item.answer}
-                    </div>
+                <div
+                  className={cn(
+                    "overflow-hidden transition-all duration-300",
+                    isOpen ? "max-h-96 opacity-100" : "max-h-0 opacity-0"
+                  )}
+                >
+                  <div className="px-6 pb-4 text-muted-foreground font-sans leading-relaxed">
+                    {item.answer}
                   </div>
                 </div>
-              )
-            })}
-          </div>
+              </div>
+            )
+          })}
         </div>
       </div>
-    </div>
+    </section>
   )
 }

@@ -1,5 +1,6 @@
 import { auth } from "@/auth"
 import { redirect } from "next/navigation"
+import { NavbarWrapper } from "@/components/layout/navbar-wrapper"
 import { Code } from "lucide-react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 
@@ -11,13 +12,16 @@ export default async function ApiDocsPage() {
   }
 
   return (
-    <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
-      <div>
-        <h1 className="text-3xl font-semibold text-[#37322F] font-serif">API Integration</h1>
-        <p className="text-[#605A57] mt-2">Integrate Logician API in your applications</p>
-      </div>
+    <>
+      <NavbarWrapper />
+      <div className="min-h-screen bg-background">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <div className="mb-8">
+            <h1 className="text-3xl font-bold text-foreground">API Integration</h1>
+            <p className="text-muted-foreground mt-2">Integrate LogiGrow API in your applications</p>
+          </div>
 
-      <Card className="border-[rgba(55,50,47,0.12)]">
+        <Card className="border-border">
         <CardHeader>
           <div className="flex items-center gap-2">
             <Code className="h-5 w-5" />
@@ -40,6 +44,8 @@ export default async function ApiDocsPage() {
           </ul>
         </CardContent>
       </Card>
-    </div>
+        </div>
+      </div>
+    </>
   )
 }
