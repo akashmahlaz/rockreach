@@ -32,12 +32,19 @@ async function createOptimizedIndexes() {
     );
     console.log('✅ Created index: orgId_phones');
 
-    // Text index for search
+    // Index for name searches (case-insensitive)
     await leads.createIndex(
-      { name: 'text', company: 'text', title: 'text' },
-      { name: 'text_search', weights: { name: 3, company: 2, title: 1 } }
+      { orgId: 1, name: 1 }, 
+      { name: 'orgId_name', collation: { locale: 'en', strength: 2 } }
     );
-    console.log('✅ Created text search index');
+    console.log('✅ Created index: orgId_name (case-insensitive)');
+
+    // Index for title searches
+    await leads.createIndex(
+      { orgId: 1, title: 1 }, 
+      { name: 'orgId_title' }
+    );
+    console.log('✅ Created index: orgId_title');
 
     // Index for filtering by phone existence
     await leads.createIndex(
@@ -59,14 +66,10 @@ async function createOptimizedIndexes() {
     const indexes = await leads.indexes();
     console.log('\nCurrent indexes:', indexes.map(i => i.name).join(', '));
     
-    const stats = await leads.stats();
+    const count = await leads.countDocuments({});
     console.log('\nCollection stats:');
-    console.log(`  Documents: ${stats.count.toLocaleString()}`);
-    console.log(`  Size: ${(stats.size / 1024 / 1024).toFixed(2)} MB`);
-    console.log(`  Avg Document Size: ${(stats.avgObjSize / 1024).toFixed(2)} KB`);
-    console.log(`  Storage Size: ${(stats.storageSize / 1024 / 1024).toFixed(2)} MB`);
-    console.log(`  Indexes: ${stats.nindexes}`);
-    console.log(`  Total Index Size: ${(stats.totalIndexSize / 1024 / 1024).toFixed(2)} MB`);
+    console.log(`  Documents: ${count.toLocaleString()}`);
+    console.log(`  Indexes: ${indexes.length}`);
   } catch (error) {
     console.error('Error creating indexes:', error);
     throw error;
