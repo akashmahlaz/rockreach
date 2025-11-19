@@ -15,7 +15,6 @@ import { useChat } from "@ai-sdk/react";
 import { UIMessage } from "ai";
 import { MessageBubble } from "@/components/c/message-bubble";
 import { EmptyState } from "@/components/c/empty-state";
-import { LoadingOverlay } from "@/components/c/loading-overlay";
 import { ChatSkeleton, ResponseLoadingSkeleton } from "@/components/c/chat-skeleton";
 import { fetchWithRetry } from "@/lib/fetch-with-retry";
 import { SimpleSidebar } from "@/components/c/simple-sidebar";
@@ -42,51 +41,7 @@ interface Conversation {
   };
 }
 
-interface ThinkingStep {
-  label: string;
-  status: "pending" | "active" | "complete";
-}
 
-// Dynamic thinking steps that update based on backend activity
-const getThinkingSteps = (lastMessage?: UIMessage) => {
-  if (!lastMessage) {
-    return [
-      { label: "Understanding your request", icon: "brain" },
-      { label: "Processing query", icon: "cog" },
-      { label: "Preparing response", icon: "check" },
-    ];
-  }
-
-  // Check what tools are being called
-  const toolParts = lastMessage.parts.filter((p) => p.type.startsWith("tool-"));
-  const hasSearch = toolParts.some(
-    (p) => p.type.includes("searchRocketReach") || p.type.includes("search"),
-  );
-  const hasLookup = toolParts.some(
-    (p) => p.type.includes("lookupRocketReach") || p.type.includes("lookup"),
-  );
-  const hasEmail = toolParts.some(
-    (p) => p.type.includes("sendEmail") || p.type.includes("email"),
-  );
-  const hasWhatsApp = toolParts.some(
-    (p) => p.type.includes("sendWhatsApp") || p.type.includes("whatsapp"),
-  );
-
-  const steps = [{ label: "Understanding your request", icon: "brain" }];
-
-  if (hasSearch) {
-    steps.push({ label: "Searching for leads", icon: "search" });
-  }
-  if (hasLookup) {
-    steps.push({ label: "Finding contact details", icon: "user" });
-  }
-  if (hasEmail || hasWhatsApp) {
-    steps.push({ label: "Preparing outreach", icon: "send" });
-  }
-  steps.push({ label: "Finalizing response", icon: "check" });
-
-  return steps;
-};
 
 export function ChatClient({ conversationId, user }: ChatClientProps) {
   const router = useRouter();
@@ -98,7 +53,6 @@ export function ChatClient({ conversationId, user }: ChatClientProps) {
   );
   const [editingMessageId, setEditingMessageId] = useState<string | null>(null);
   const [editContent, setEditContent] = useState("");
-  const [thinkingSteps, setThinkingSteps] = useState<ThinkingStep[]>([]);
   // Track conversation switching for loading overlay
   const [isSwitchingConversation, setIsSwitchingConversation] = useState(false);
   const [isConversationsLoading, setIsConversationsLoading] = useState(true);
@@ -174,7 +128,6 @@ export function ChatClient({ conversationId, user }: ChatClientProps) {
           console.error("[onFinish] ✗ Failed to save:", error);
         }
       }
-      setThinkingSteps([]);
     },
     onError: (error) => {
       console.error("Chat error:", error);
@@ -205,8 +158,6 @@ export function ChatClient({ conversationId, user }: ChatClientProps) {
       } else {
         toast.error(errorMessage);
       }
-
-      setThinkingSteps([]);
     },
   });
 
@@ -330,7 +281,7 @@ export function ChatClient({ conversationId, user }: ChatClientProps) {
         }
       }, 100);
     }
-  }, [messages, thinkingSteps, status]);
+  }, [messages, status]);
 
   // Auto-resize textarea with debounce to prevent layout thrashing
   useEffect(() => {
@@ -361,13 +312,6 @@ export function ChatClient({ conversationId, user }: ChatClientProps) {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [conversationId]);
-
-  // Cleanup thinking steps when loading completes
-  useEffect(() => {
-    if (!isLoading) {
-      setThinkingSteps([]);
-    }
-  }, [isLoading]);
 
   // Load conversations from MongoDB on mount
   useEffect(() => {
