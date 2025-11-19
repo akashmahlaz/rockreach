@@ -7,8 +7,16 @@ let client: MongoClient | null = null;
  * Configured for high concurrency and production use
  */
 export async function getMongoClient() {
-  if (client && client.topology?.isConnected()) {
-    return client;
+  // Check if client exists and is connected
+  if (client) {
+    try {
+      // Ping the database to check connection
+      await client.db('admin').command({ ping: 1 });
+      return client;
+    } catch {
+      // Connection lost, reset client
+      client = null;
+    }
   }
 
   const uri = process.env.MONGODB_URI;

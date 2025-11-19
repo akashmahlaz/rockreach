@@ -1,7 +1,7 @@
 import { auth } from "@/auth";
 import { NextResponse } from "next/server";
 import { getDb, Collections } from "@/lib/db";
-import { getRedis } from "@/lib/redis";
+import { getRedisClient } from "@/lib/redis";
 
 export async function GET(req: Request) {
   const session = await auth();
@@ -23,7 +23,7 @@ export async function GET(req: Request) {
 
   try {
     // Try Redis cache first
-    const redis = getRedis();
+    const redis = await getRedisClient();
     const cacheKey = `leads:list:${orgId}:${page}:${limit}:${sortBy}:${sortOrder}:${filterPhone}:${filterEmail}:${search}`;
     
     if (redis) {
@@ -94,7 +94,7 @@ export async function GET(req: Request) {
 
     // Cache for 5 minutes
     if (redis) {
-      await redis.setex(cacheKey, 300, JSON.stringify(response));
+      await redis.setEx(cacheKey, 300, JSON.stringify(response));
     }
 
     return NextResponse.json(response);

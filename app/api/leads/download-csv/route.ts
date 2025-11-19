@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { auth } from '@/auth';
-import clientPromise from '@/lib/db';
+import { getDb } from '@/lib/db';
 
 export async function GET(req: Request) {
   try {
@@ -16,17 +16,29 @@ export async function GET(req: Request) {
       return NextResponse.json({ error: 'File ID required' }, { status: 400 });
     }
 
-    const client = await clientPromise;
-    const db = client.db('rockreach');
+    const orgId = session.user.orgId ?? session.user.email;
+    const db = await getDb();
 
-    console.log('[Download CSV] Looking for file:', { fileId, userEmail: session.user.email });
+    console.log('[Download CSV] Looking for file:', { fileId, orgId, userEmail: session.user.email });
 
-    // Fetch the temporary file by fileId (not filtering by userId since it's not in the URL)
-    const tempFile = await db.collection('temp_files').findOne({ 
+    // Try to find file with orgId first (security check)
+    let tempFile = await db.collection('temp_files').findOne({ 
       fileId,
-      // Optionally verify user owns this file for security
-      // But for now, fileId alone should be sufficient as it's a UUID
+      orgId,
     });
+
+    // Fallback: try fileId only (for backward compatibility)
+    if (!tempFile) {
+      console.log('[Download CSV] Not found with orgId, trying fileId only...');
+      tempFile = await db.collection('temp_files').findOne({ fileId });
+      
+      if (tempFile) {
+        console.log('[Download CSV] Found with different orgId:', {
+          fileOrgId: tempFile.orgId,
+          requestedOrgId: orgId,
+        });
+      }
+    }
 
     console.log('[Download CSV] File found:', tempFile ? 'YES' : 'NO');
     

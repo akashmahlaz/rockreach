@@ -157,8 +157,6 @@ export function createAssistantTools({ orgId, userId }: ToolContext) {
             title: input.title,
             location: input.location,
             domain: input.domain,
-            phone: input.phone,
-            email: input.email,
             name: input.name,
             page_size: limit,
           })) as RocketReachSearchResponse;
@@ -467,6 +465,7 @@ export function createAssistantTools({ orgId, userId }: ToolContext) {
           await db.collection('temp_files').insertOne({
             fileId,
             userId,
+            orgId, // Add orgId for proper filtering
             content: csvContent,
             filename: finalFilename,
             mimeType: 'text/csv',
