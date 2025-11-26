@@ -278,7 +278,7 @@ export default function AIProvidersClient() {
                       });
                     }}
                   >
-                    <SelectTrigger>
+                    <SelectTrigger className="w-full">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -323,14 +323,14 @@ export default function AIProvidersClient() {
                       value={formData.defaultModel}
                       onValueChange={(value) => setFormData({ ...formData, defaultModel: value })}
                     >
-                      <SelectTrigger>
+                      <SelectTrigger className="w-full">
                         <SelectValue placeholder={`Select ${getProviderLabel(formData.provider || '')} model`} />
                       </SelectTrigger>
-                      <SelectContent>
+                      <SelectContent className="min-w-[300px]">
                         {getModelsForProvider(formData.provider || '').map((model) => (
-                          <SelectItem key={model.value} value={model.value}>
-                            <div className="flex flex-col">
-                              <span className="font-medium">{model.label}</span>
+                          <SelectItem key={model.value} value={model.value} className="py-2">
+                            <div className="flex flex-col gap-0.5">
+                              <span className="font-medium text-sm">{model.label}</span>
                               <span className="text-xs text-muted-foreground">{model.description}</span>
                             </div>
                           </SelectItem>
@@ -420,7 +420,7 @@ export default function AIProvidersClient() {
                           });
                         }}
                       >
-                        <SelectTrigger>
+                        <SelectTrigger className="w-full">
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
@@ -463,14 +463,14 @@ export default function AIProvidersClient() {
                           value={formData.defaultModel}
                           onValueChange={(value) => setFormData({ ...formData, defaultModel: value })}
                         >
-                          <SelectTrigger>
+                          <SelectTrigger className="w-full">
                             <SelectValue placeholder={`Select ${getProviderLabel(formData.provider || '')} model`} />
                           </SelectTrigger>
-                          <SelectContent>
+                          <SelectContent className="min-w-[300px]">
                             {getModelsForProvider(formData.provider || '').map((model) => (
-                              <SelectItem key={model.value} value={model.value}>
-                                <div className="flex flex-col">
-                                  <span className="font-medium">{model.label}</span>
+                              <SelectItem key={model.value} value={model.value} className="py-2">
+                                <div className="flex flex-col gap-0.5">
+                                  <span className="font-medium text-sm">{model.label}</span>
                                   <span className="text-xs text-muted-foreground">{model.description}</span>
                                 </div>
                               </SelectItem>

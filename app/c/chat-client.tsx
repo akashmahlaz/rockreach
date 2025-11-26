@@ -122,12 +122,12 @@ export function ChatClient({ conversationId, user }: ChatClientProps) {
               if (c.id === activeConvId) {
                 // Update title if it's first message
                 const shouldUpdateTitle = formattedMessages.length === 2 && c.title === "New chat";
-                const newTitle = shouldUpdateTitle 
+                const newTitle = shouldUpdateTitle
                   ? formattedMessages[0].parts.find(p => p.type === 'text')?.text?.slice(0, 50) || "New chat"
                   : c.title;
-                
-                return { 
-                  ...c, 
+
+                return {
+                  ...c,
                   title: newTitle,
                   messages: formattedMessages,
                   createdAt: c.createdAt || Date.now()
@@ -342,14 +342,14 @@ export function ChatClient({ conversationId, user }: ChatClientProps) {
       });
       if (res.ok) {
         const data = await res.json();
-        
+
         // Only update if data actually changed (prevent unnecessary re-renders)
         setConversations((prev) => {
-          const hasChanged = JSON.stringify(prev.map(c => ({ id: c.id, title: c.title }))) !== 
-                             JSON.stringify(data.map((c: Conversation) => ({ id: c.id, title: c.title })));
+          const hasChanged = JSON.stringify(prev.map(c => ({ id: c.id, title: c.title }))) !==
+            JSON.stringify(data.map((c: Conversation) => ({ id: c.id, title: c.title })));
           return hasChanged ? data : prev;
         });
-        
+
         if (data.length > 0 && !activeConvId) {
           setActiveConvId(data[0].id);
         }
@@ -376,13 +376,13 @@ export function ChatClient({ conversationId, user }: ChatClientProps) {
         fetchConversations(false); // Don't show loading spinner for background refresh
         setShouldRefreshConversations(false);
       }, 1500); // Wait 1.5s to batch multiple updates
-      
+
       return () => clearTimeout(timer);
     }
   }, [shouldRefreshConversations, fetchConversations]);
 
   // Conversations are now auto-saved to MongoDB via API calls
-  
+
   const createNewConversation = () => {
     // Redirect to API route that creates conversation in MongoDB first
     window.location.href = "/api/assistant/new-conversation";
@@ -421,7 +421,7 @@ export function ChatClient({ conversationId, user }: ChatClientProps) {
       },
       cancel: {
         label: "Cancel",
-        onClick: () => {},
+        onClick: () => { },
       },
     });
   };
@@ -715,8 +715,8 @@ export function ChatClient({ conversationId, user }: ChatClientProps) {
                     variant={localInput.trim() ? "default" : "ghost"}
                     className={cn(
                       "h-7 w-7 sm:h-8 sm:w-8 rounded-full shrink-0 transition-all mb-0.5",
-                      localInput.trim() 
-                        ? "bg-primary text-primary-foreground hover:bg-primary/90" 
+                      localInput.trim()
+                        ? "bg-primary text-primary-foreground hover:bg-primary/90"
                         : "text-muted-foreground hover:text-foreground hover:bg-muted"
                     )}
                   >
@@ -730,10 +730,10 @@ export function ChatClient({ conversationId, user }: ChatClientProps) {
               </form>
               {isLoading && (
                 <div className="mt-3 flex justify-center">
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
-                    onClick={stop} 
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={stop}
                     className="h-8 text-xs gap-2 hover:bg-destructive/10 hover:text-destructive hover:border-destructive/30 transition-colors"
                   >
                     <div className="w-2 h-2 bg-current rounded-sm" />

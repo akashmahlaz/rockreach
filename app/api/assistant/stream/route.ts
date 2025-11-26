@@ -110,8 +110,8 @@ export async function POST(req: Request) {
       system: systemPrompt,
       messages: convertToModelMessages(messagesToSend),
       tools,
-      stopWhen: stepCountIs(5), // Enable multi-step: continue for up to 5 steps after tool calls
-      // By default, tools will execute and continue - no maxSteps needed
+      maxSteps: 10, // Allow up to 10 steps for complex multi-step operations
+      stopWhen: stepCountIs(5), // Stop after 5 steps if no progress
       onStepFinish: async ({ toolCalls, toolResults, finishReason, text }) => {
         console.log("Step finished:", {
           finishReason,
@@ -134,10 +134,17 @@ export async function POST(req: Request) {
         if (toolResults && toolResults.length > 0) {
           toolResults.forEach(tr => {
             const result = "result" in tr ? tr.result : {};
+            const hasError = result && typeof result === "object" && "error" in result;
             console.log(`Tool result: ${tr.toolName}`, {
-              success: result && typeof result === "object" && !("error" in result),
+              success: !hasError,
+              hasError,
               output: result,
             });
+            
+            // Log tool errors for debugging
+            if (hasError) {
+              console.error(`Tool execution error for ${tr.toolName}:`, result.error);
+            }
           });
         }
       },
@@ -181,6 +188,17 @@ export async function POST(req: Request) {
       },
       onError: async ({ error }) => {
         console.error("Stream error:", error);
+        
+        // Handle specific AI SDK errors
+        const errorMessage = error instanceof Error ? error.message : "Unknown error";
+        const errorType = error instanceof Error ? error.constructor.name : "Unknown";
+        
+        console.error("Error details:", {
+          type: errorType,
+          message: errorMessage,
+          stack: error instanceof Error ? error.stack : undefined,
+        });
+        
         await logApiUsage({
           orgId,
           userId,
@@ -190,7 +208,7 @@ export async function POST(req: Request) {
           units: 0,
           status: "error",
           durationMs: Date.now() - startedAt,
-          error: error instanceof Error ? error.message : "Unknown error",
+          error: `${errorType}: ${errorMessage}`,
         });
       },
     });

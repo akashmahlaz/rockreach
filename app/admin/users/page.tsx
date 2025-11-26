@@ -1,6 +1,5 @@
 import { auth } from "@/auth";
 import { redirect } from "next/navigation";
-import { NavbarWrapper } from "@/components/layout/navbar-wrapper";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { getDb, Collections } from "@/lib/db";
 import { Users } from "lucide-react";
@@ -99,10 +98,7 @@ export default async function UsersManagementPage() {
   const userCount = serializedUsers.filter((u) => u.role === "user" || !u.role).length;
 
   return (
-    <>
-      <NavbarWrapper />
-      <div className="min-h-screen bg-background">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           {/* Header */}
           <div className="mb-8">
             <h1 className="text-3xl font-semibold text-foreground">User Management</h1>
@@ -187,7 +183,5 @@ export default async function UsersManagementPage() {
           </CardContent>
         </Card>
       </div>
-    </div>
-    </>
   );
 }

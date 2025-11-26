@@ -43,7 +43,7 @@ export function EmptyState({ onExampleClick }: EmptyStateProps) {
           <Sparkles className="w-8 h-8" />
         </div>
         <h1 className="text-4xl font-serif font-medium text-foreground tracking-tight">
-          How can I help you grow today?
+          Let&apos;s Find your<span className="italic font-serif px-1">Next</span> Customer
         </h1>
         {/* <p className="text-lg text-muted-foreground font-sans max-w-lg mx-auto">
           I can help you find leads, write emails, and analyze market data.

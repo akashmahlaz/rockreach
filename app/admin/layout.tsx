@@ -8,7 +8,9 @@ export default function AdminLayout({
   return (
     <>
       <NavbarWrapper />
-      {children}
+      <div className="min-h-screen bg-background">
+        {children}
+      </div>
     </>
   )
 }

@@ -56,48 +56,45 @@ export function Navbar({ user }: NavbarProps) {
   }
 
   return (
-    <nav className="sticky top-0 z-50 w-full border-b bg-background/80 backdrop-blur-md supports-backdrop-filter:bg-background/60">
-      <div className="container flex h-16 max-w-7xl items-center justify-between px-4 md:px-6">
+    <nav className="sticky top-0 z-50 w-full border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80 shadow-sm">
+      <div className="container flex h-14 sm:h-16 max-w-7xl items-center justify-between px-3 sm:px-4 md:px-6 lg:px-8 gap-2">
         {/* Logo */}
-        <Link 
-          href={isAuthenticated ? "/dashboard" : "/"} 
-          className="flex items-center gap-2 hover:opacity-80 transition-opacity"
+        <Link
+          href={isAuthenticated ? "/dashboard" : "/"}
+          className="flex items-center gap-1.5 sm:gap-2 hover:opacity-80 transition-opacity flex-shrink-0 min-w-0"
         >
-          <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-primary text-primary-foreground font-bold text-lg font-serif">
+          <div className="flex items-center justify-center w-7 h-7 sm:w-8 sm:h-8 md:w-9 md:h-9 rounded-lg bg-primary text-primary-foreground font-bold text-xs sm:text-sm md:text-base shadow-sm flex-shrink-0">
             L
           </div>
-          <span className="hidden sm:inline-block font-serif text-xl font-medium tracking-tight">LogiGrow</span>
+          <span className="hidden xs:inline-block font-semibold text-sm sm:text-base md:text-lg font-sans tracking-tight text-foreground truncate">LogiGrow</span>
         </Link>
 
-        {/* Desktop Navigation - Minimal & Flat */}
-        <div className="hidden md:flex items-center gap-8">
+        {/* Desktop Navigation */}
+        <div className="hidden md:flex items-center gap-1 lg:gap-2">
           {!isAuthenticated ? (
             <>
-              <Link href="/#features" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
+              <Link href="/features" className="px-3 py-2 text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-accent rounded-md transition-colors">
                 Features
               </Link>
-              <Link href="/#pricing" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
+              <Link href="/pricing" className="px-3 py-2 text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-accent rounded-md transition-colors">
                 Pricing
               </Link>
-              <Link href="/docs/guide" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
+              <Link href="/docs/guide" className="px-3 py-2 text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-accent rounded-md transition-colors">
                 Docs
               </Link>
             </>
           ) : (
             <>
-              <Link href="/dashboard" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
+              <Link href="/dashboard" className="px-3 py-2 text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-accent rounded-md transition-colors">
                 Dashboard
               </Link>
-              <Link href="/leads" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
-                Leads
-              </Link>
-               <Link href="/c" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
-                Search 
-              </Link>
-              {/* <Link href="/email/campaigns" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
-                Campaigns
+              {/* <Link href="/leads" className="px-3 py-2 text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-accent rounded-md transition-colors">
+                Clients
               </Link> */}
-              <Link href="/docs/guide" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
+              <Link href="/c" className="px-3 py-2 text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-accent rounded-md transition-colors">
+                Connect
+              </Link>
+              <Link href="/docs/guide" className="px-3 py-2 text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-accent rounded-md transition-colors">
                 Docs
               </Link>
             </>
@@ -105,14 +102,14 @@ export function Navbar({ user }: NavbarProps) {
         </div>
 
         {/* Right side actions */}
-        <div className="flex items-center gap-2">
-          {/* Theme Toggle */}
+        <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
+          {/* Theme Toggle - Hidden on mobile, shown on desktop */}
           {mounted && (
             <Button
               variant="ghost"
               size="icon"
               onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-              className="h-9 w-9"
+              className="hidden sm:flex h-8 w-8 sm:h-9 sm:w-9"
               aria-label="Toggle theme"
             >
               <Sun className="h-4 w-4 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
@@ -121,80 +118,88 @@ export function Navbar({ user }: NavbarProps) {
             </Button>
           )}
 
-          {/* User Menu or Sign In */}
-          {isAuthenticated ? (
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="flex items-center gap-2 h-9 px-2">
-                  <Avatar className="h-7 w-7">
-                    <AvatarImage src={user.image || undefined} alt={user.name || "User"} />
-                    <AvatarFallback className="text-xs">{getInitials(user.name)}</AvatarFallback>
-                  </Avatar>
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-56">
-                <DropdownMenuLabel>
-                  <div className="flex flex-col gap-1">
-                    <p className="text-sm font-medium">{user.name}</p>
-                    <p className="text-xs text-muted-foreground truncate">{user.email}</p>
-                  </div>
-                </DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem asChild>
-                  <Link href="/settings" className="cursor-pointer">
-                    Settings
-                  </Link>
-                </DropdownMenuItem>
-                {user.role === "admin" && (
+          {/* User Menu or Sign In - Hidden on mobile */}
+          {isAuthenticated && (
+            <div className="hidden md:block">
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" className="flex items-center gap-2 h-8 sm:h-9 px-2">
+                    <Avatar className="h-7 w-7">
+                      <AvatarImage src={user.image || undefined} alt={user.name || "User"} />
+                      <AvatarFallback className="text-xs">{getInitials(user.name)}</AvatarFallback>
+                    </Avatar>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-56 bg-popover">
+                  <DropdownMenuLabel>
+                    <div className="flex flex-col gap-1">
+                      <p className="text-sm font-medium">{user.name}</p>
+                      <p className="text-xs text-muted-foreground truncate">{user.email}</p>
+                    </div>
+                  </DropdownMenuLabel>
+                  <DropdownMenuSeparator />
                   <DropdownMenuItem asChild>
-                    <Link href="/admin" className="cursor-pointer">
-                      Admin Panel
+                    <Link href="/settings" className="cursor-pointer">
+                      Settings
                     </Link>
                   </DropdownMenuItem>
-                )}
-                <DropdownMenuSeparator />
-                <DropdownMenuItem className="cursor-pointer">
-                  <SignOut />
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          ) : (
-            <SignIn />
+                  {user.role === "admin" && (
+                    <DropdownMenuItem asChild>
+                      <Link href="/admin" className="cursor-pointer">
+                        Admin Panel
+                      </Link>
+                    </DropdownMenuItem>
+                  )}
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem className="cursor-pointer">
+                    <SignOut />
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
+          )}
+
+          {/* Sign In - Hidden on mobile */}
+          {!isAuthenticated && (
+            <div className="hidden md:block">
+              <SignIn />
+            </div>
           )}
 
           {/* Mobile Menu */}
           <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
-            <SheetTrigger asChild className="md:hidden">
-              <Button variant="ghost" size="icon" className="h-9 w-9">
+            <SheetTrigger asChild>
+              <Button variant="ghost" size="icon" className="h-8 w-8 sm:h-9 sm:w-9 md:hidden">
                 <Menu className="h-5 w-5" />
                 <span className="sr-only">Toggle menu</span>
               </Button>
             </SheetTrigger>
-            <SheetContent side="right" className="w-[300px] sm:w-[350px]">
+            <SheetContent side="right" className="w-[280px] sm:w-[320px] bg-background">
               <SheetHeader>
-                <SheetTitle>Menu</SheetTitle>
+                <SheetTitle className="text-foreground">Menu</SheetTitle>
               </SheetHeader>
-              <div className="flex flex-col gap-4 mt-6">
+              <div className="flex flex-col gap-3 sm:gap-4 mt-6">
                 {/* Theme toggle in mobile */}
-                <div className="flex items-center justify-between p-2">
-                  <span className="text-sm font-medium">Theme</span>
+                <div className="flex items-center justify-between p-3 rounded-lg border bg-card">
+                  <span className="text-sm font-medium text-foreground">Theme</span>
                   <Button
                     variant="outline"
                     size="sm"
                     onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+                    className="bg-background"
                   >
                     {theme === "dark" ? "Light" : "Dark"}
                   </Button>
                 </div>
-                
-                <Separator />
 
-                <div className="flex flex-col gap-2">
+                <Separator className="bg-border" />
+
+                <div className="flex flex-col gap-1">
                   {/* Home */}
                   <Button
                     variant="ghost"
                     asChild
-                    className="justify-start"
+                    className="justify-start text-foreground hover:bg-accent"
                     onClick={() => setMobileOpen(false)}
                   >
                     <Link href="/">Home</Link>
@@ -205,7 +210,7 @@ export function Navbar({ user }: NavbarProps) {
                       <Button
                         variant="ghost"
                         asChild
-                        className="justify-start"
+                        className="justify-start text-foreground hover:bg-accent"
                         onClick={() => setMobileOpen(false)}
                       >
                         <Link href="/#features">Features</Link>
@@ -213,7 +218,7 @@ export function Navbar({ user }: NavbarProps) {
                       <Button
                         variant="ghost"
                         asChild
-                        className="justify-start"
+                        className="justify-start text-foreground hover:bg-accent"
                         onClick={() => setMobileOpen(false)}
                       >
                         <Link href="/#pricing">Pricing</Link>
@@ -221,7 +226,7 @@ export function Navbar({ user }: NavbarProps) {
                       <Button
                         variant="ghost"
                         asChild
-                        className="justify-start"
+                        className="justify-start text-foreground hover:bg-accent"
                         onClick={() => setMobileOpen(false)}
                       >
                         <Link href="/docs/guide">Docs</Link>
@@ -232,7 +237,7 @@ export function Navbar({ user }: NavbarProps) {
                       <Button
                         variant="ghost"
                         asChild
-                        className="justify-start"
+                        className="justify-start text-foreground hover:bg-accent"
                         onClick={() => setMobileOpen(false)}
                       >
                         <Link href="/dashboard">Dashboard</Link>
@@ -240,7 +245,15 @@ export function Navbar({ user }: NavbarProps) {
                       <Button
                         variant="ghost"
                         asChild
-                        className="justify-start"
+                        className="justify-start text-foreground hover:bg-accent"
+                        onClick={() => setMobileOpen(false)}
+                      >
+                        <Link href="/leads">Leads</Link>
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        asChild
+                        className="justify-start text-foreground hover:bg-accent"
                         onClick={() => setMobileOpen(false)}
                       >
                         <Link href="/leads/search">Search</Link>
@@ -248,7 +261,15 @@ export function Navbar({ user }: NavbarProps) {
                       <Button
                         variant="ghost"
                         asChild
-                        className="justify-start"
+                        className="justify-start text-foreground hover:bg-accent"
+                        onClick={() => setMobileOpen(false)}
+                      >
+                        <Link href="/c">AI Chat</Link>
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        asChild
+                        className="justify-start text-foreground hover:bg-accent"
                         onClick={() => setMobileOpen(false)}
                       >
                         <Link href="/email/campaigns">Campaigns</Link>
@@ -256,7 +277,7 @@ export function Navbar({ user }: NavbarProps) {
                       <Button
                         variant="ghost"
                         asChild
-                        className="justify-start"
+                        className="justify-start text-foreground hover:bg-accent"
                         onClick={() => setMobileOpen(false)}
                       >
                         <Link href="/docs/guide">Docs</Link>
@@ -267,21 +288,21 @@ export function Navbar({ user }: NavbarProps) {
 
                 {isAuthenticated && (
                   <>
-                    <Separator />
-                    <div className="flex items-center gap-3 p-2">
+                    <Separator className="bg-border" />
+                    <div className="flex items-center gap-3 p-3 rounded-lg border bg-card">
                       <Avatar className="h-10 w-10">
                         <AvatarImage src={user.image || undefined} alt={user.name || "User"} />
-                        <AvatarFallback>{getInitials(user.name)}</AvatarFallback>
+                        <AvatarFallback className="bg-primary text-primary-foreground">{getInitials(user.name)}</AvatarFallback>
                       </Avatar>
                       <div className="flex flex-col min-w-0 flex-1">
-                        <span className="text-sm font-medium truncate">{user.name}</span>
+                        <span className="text-sm font-medium text-foreground truncate">{user.name}</span>
                         <span className="text-xs text-muted-foreground truncate">{user.email}</span>
                       </div>
                     </div>
                     <Button
                       variant="ghost"
                       asChild
-                      className="justify-start"
+                      className="justify-start text-foreground hover:bg-accent"
                       onClick={() => setMobileOpen(false)}
                     >
                       <Link href="/settings">Settings</Link>
@@ -290,20 +311,27 @@ export function Navbar({ user }: NavbarProps) {
                       <Button
                         variant="ghost"
                         asChild
-                        className="justify-start"
+                        className="justify-start text-foreground hover:bg-accent"
                         onClick={() => setMobileOpen(false)}
                       >
                         <Link href="/admin">Admin Panel</Link>
                       </Button>
                     )}
+                    <Separator className="bg-border" />
                     <Button
                       variant="ghost"
-                      className="justify-start"
+                      className="justify-start text-foreground hover:bg-accent"
                       onClick={() => setMobileOpen(false)}
                     >
                       <SignOut />
                     </Button>
                   </>
+                )}
+
+                {!isAuthenticated && (
+                  <div className="pt-4">
+                    <SignIn />
+                  </div>
                 )}
               </div>
             </SheetContent>

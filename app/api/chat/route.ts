@@ -25,7 +25,7 @@ export async function POST(req: Request) {
     limit: 20,
     windowSeconds: 60,
   });
-  
+
   if (rateLimitResult) {
     return rateLimitResult;
   }
@@ -36,14 +36,14 @@ export async function POST(req: Request) {
     const body = (await req.json()) as {
       messages: UIMessage[];
     };
-    
+
     // Extract conversationId from cookie (set by client)
     const cookies = req.headers.get("cookie") || "";
     const conversationId = cookies
       .split(";")
       .find(c => c.trim().startsWith("active-conversation-id="))
       ?.split("=")[1];
-      
+
     console.log('[Chat API] Request received:', {
       conversationId,
       messageCount: body.messages.length,
@@ -68,7 +68,7 @@ export async function POST(req: Request) {
       try {
         const { getConversation } = await import('@/models/Conversation');
         const conversation = await getConversation(conversationId, userId);
-        
+
         if (conversation && conversation.messages && conversation.messages.length > 0) {
           // MongoDB has existing messages - merge with new message from client
           const dbMessages = conversation.messages.map(msg => ({
@@ -77,13 +77,13 @@ export async function POST(req: Request) {
             parts: msg.parts || [{ type: 'text', text: msg.content || '' }],
             createdAt: msg.createdAt,
           })) as UIMessage[];
-          
+
           // Get the last message from client (the new user message)
           const lastClientMessage = body.messages[body.messages.length - 1];
-          
+
           // Check if this is a new message (not in DB yet)
           const isNewMessage = !dbMessages.some(m => m.id === lastClientMessage.id);
-          
+
           if (isNewMessage) {
             // Append new message to DB messages
             messagesToSend = [...dbMessages, lastClientMessage];
@@ -122,8 +122,8 @@ export async function POST(req: Request) {
       system: systemPrompt,
       messages: convertToModelMessages(messagesToSend),
       tools,
-      stopWhen: stepCountIs(5), // Enable multi-step: continue for up to 5 steps after tool calls
-      // By default, tools will execute and continue - no maxSteps needed
+      maxSteps: 10, // Allow up to 10 steps for complex multi-step operations
+      stopWhen: stepCountIs(5), // Stop after 5 steps if no progress
       onStepFinish: async ({ toolCalls, toolResults, finishReason, text }) => {
         console.log("Step finished:", {
           finishReason,
@@ -133,7 +133,7 @@ export async function POST(req: Request) {
           toolResultCount: toolResults?.length || 0,
           toolNames: toolCalls?.map(tc => tc.toolName),
         });
-        
+
         // Log each tool execution
         if (toolCalls && toolCalls.length > 0) {
           toolCalls.forEach(tc => {
@@ -142,20 +142,27 @@ export async function POST(req: Request) {
             });
           });
         }
-        
+
         if (toolResults && toolResults.length > 0) {
           toolResults.forEach(tr => {
             const result = "result" in tr ? tr.result : {};
+            const hasError = result && typeof result === "object" && "error" in result;
             console.log(`Tool result: ${tr.toolName}`, {
-              success: result && typeof result === "object" && !("error" in result),
+              success: !hasError,
+              hasError,
               output: result,
             });
+
+            // Log tool errors for debugging
+            if (hasError) {
+              console.error(`Tool execution error for ${tr.toolName}:`, result.error);
+            }
           });
         }
       },
       onFinish: async ({ usage, totalUsage, finishReason, steps, text }) => {
-        console.log("Stream finished:", { 
-          finishReason, 
+        console.log("Stream finished:", {
+          finishReason,
           totalSteps: steps || 0,
           hasText: !!text && text.length > 0,
           textLength: text?.length || 0,
@@ -170,7 +177,7 @@ export async function POST(req: Request) {
             totalTokens: totalUsage?.totalTokens || 0,
           }
         });
-        
+
         // Log warning for unknown finish reasons
         if (finishReason === 'unknown' || (totalUsage?.outputTokens || 0) === 0) {
           console.warn('⚠️ Stream ended abnormally:', {
@@ -193,6 +200,17 @@ export async function POST(req: Request) {
       },
       onError: async ({ error }) => {
         console.error("Stream error:", error);
+
+        // Handle specific AI SDK errors
+        const errorMessage = error instanceof Error ? error.message : "Unknown error";
+        const errorType = error instanceof Error ? error.constructor.name : "Unknown";
+
+        console.error("Error details:", {
+          type: errorType,
+          message: errorMessage,
+          stack: error instanceof Error ? error.stack : undefined,
+        });
+
         await logApiUsage({
           orgId,
           userId,
@@ -202,7 +220,7 @@ export async function POST(req: Request) {
           units: 0,
           status: "error",
           durationMs: Date.now() - startedAt,
-          error: error instanceof Error ? error.message : "Unknown error",
+          error: `${errorType}: ${errorMessage}`,
         });
       },
     });
