@@ -122,7 +122,6 @@ export async function POST(req: Request) {
       system: systemPrompt,
       messages: convertToModelMessages(messagesToSend),
       tools,
-      maxSteps: 10, // Allow up to 10 steps for complex multi-step operations
       stopWhen: stepCountIs(5), // Stop after 5 steps if no progress
       onStepFinish: async ({ toolCalls, toolResults, finishReason, text }) => {
         console.log("Step finished:", {

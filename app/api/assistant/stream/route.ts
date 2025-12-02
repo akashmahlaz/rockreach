@@ -110,7 +110,6 @@ export async function POST(req: Request) {
       system: systemPrompt,
       messages: convertToModelMessages(messagesToSend),
       tools,
-      maxToolRoundtrips: 10, // Allow up to 10 tool execution rounds
       onStepFinish: async ({ toolCalls, toolResults, finishReason, text }) => {
         console.log("Step finished:", {
           finishReason,
