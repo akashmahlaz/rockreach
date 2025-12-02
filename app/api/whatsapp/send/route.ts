@@ -1,8 +1,15 @@
 import { auth } from "@/auth";
 import { NextResponse } from "next/server";
 import { getDb, Collections } from "@/lib/db";
+import { rateLimit } from "@/lib/rate-limit";
+import { logApiUsage } from "@/models/ApiUsage";
+
+// Maximum messages per request
+const MAX_MESSAGES_PER_REQUEST = 25;
 
 export async function POST(req: Request) {
+  const startedAt = Date.now();
+  
   try {
     const session = await auth();
     if (!session?.user) {
@@ -10,6 +17,18 @@ export async function POST(req: Request) {
     }
 
     const orgId = session.user.orgId || "";
+    const userId = session.user.id || session.user.email || "";
+    
+    // Rate limiting: 50 WhatsApp messages per minute per user
+    const rateLimitResult = await rateLimit(`whatsapp:${userId}`, {
+      limit: 50,
+      windowSeconds: 60,
+    });
+    
+    if (rateLimitResult) {
+      return rateLimitResult;
+    }
+
     const body = await req.json();
     const { phoneNumbers, message, leadIds } = body;
 
@@ -19,10 +38,36 @@ export async function POST(req: Request) {
         { status: 400 }
       );
     }
+    
+    // Validate phone number format (basic international format)
+    const phoneRegex = /^\+?[1-9]\d{6,14}$/;
+    const invalidPhones = phoneNumbers.filter((phone: string) => !phoneRegex.test(phone.replace(/[\s-()]/g, '')));
+    if (invalidPhones.length > 0) {
+      return NextResponse.json(
+        { error: `Invalid phone numbers: ${invalidPhones.slice(0, 3).join(', ')}${invalidPhones.length > 3 ? '...' : ''}` },
+        { status: 400 }
+      );
+    }
+    
+    // Limit batch size
+    if (phoneNumbers.length > MAX_MESSAGES_PER_REQUEST) {
+      return NextResponse.json(
+        { error: `Maximum ${MAX_MESSAGES_PER_REQUEST} messages per request. You requested ${phoneNumbers.length}.` },
+        { status: 400 }
+      );
+    }
 
     if (!message) {
       return NextResponse.json(
         { error: "Message content is required" },
+        { status: 400 }
+      );
+    }
+    
+    // Validate message length (WhatsApp limit)
+    if (message.length > 4096) {
+      return NextResponse.json(
+        { error: "Message too long (max 4096 characters for WhatsApp)" },
         { status: 400 }
       );
     }

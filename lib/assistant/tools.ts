@@ -336,6 +336,159 @@ export function createAssistantTools({ orgId, userId }: ToolContext) {
         }
       },
     },
+    lookupLinkedInProfile: {
+      description: "Lookup a lead's contact information (email and phone) using their LinkedIn URL. Use this when user provides a LinkedIn profile URL and wants to get the person's email address and phone number.",
+      inputSchema: z.object({
+        linkedinUrl: z.string().url().describe("LinkedIn profile URL (e.g., https://www.linkedin.com/in/username)"),
+      }),
+      execute: async ({ linkedinUrl }: { linkedinUrl: string }) => {
+        try {
+          // Validate LinkedIn URL format
+          const linkedinRegex = /^https?:\/\/(www\.)?linkedin\.com\/(in|pub)\/[\w-]+\/?/i;
+          if (!linkedinRegex.test(linkedinUrl)) {
+            return {
+              success: false,
+              error: "Invalid LinkedIn URL format",
+              message: "Please provide a valid LinkedIn URL (e.g., https://www.linkedin.com/in/username)",
+            };
+          }
+
+          // Call the internal LinkedIn lookup API
+          const { getRocketReachSettings } = await import('@/models/RocketReachSettings');
+          const { decryptSecret } = await import('@/lib/crypto');
+          const { logApiUsage } = await import('@/models/ApiUsage');
+          const { upsertLead } = await import('@/models/Lead');
+
+          const settings = await getRocketReachSettings(orgId);
+          if (!settings || !settings.isEnabled) {
+            return {
+              success: false,
+              error: "RocketReach not configured",
+              message: "Please configure RocketReach API in admin settings to lookup LinkedIn profiles.",
+            };
+          }
+
+          const apiKey = settings.apiKeyEncrypted
+            ? decryptSecret(settings.apiKeyEncrypted as Parameters<typeof decryptSecret>[0])
+            : null;
+
+          if (!apiKey) {
+            return {
+              success: false,
+              error: "API key not configured",
+              message: "RocketReach API key not found. Please configure it in admin settings.",
+            };
+          }
+
+          const startTime = Date.now();
+          const baseUrl = settings.baseUrl || 'https://api.rocketreach.co';
+          const url = new URL(`${baseUrl}/api/v2/person/lookup`);
+          url.searchParams.append('linkedin_url', linkedinUrl);
+
+          const response = await fetch(url.toString(), {
+            method: 'GET',
+            headers: {
+              'Api-Key': apiKey,
+              'Accept': 'application/json',
+            },
+          });
+
+          const responseTime = Date.now() - startTime;
+
+          if (!response.ok) {
+            await logApiUsage({
+              orgId,
+              provider: 'rocketreach',
+              endpoint: '/api/v2/person/lookup',
+              method: 'GET',
+              units: 0,
+              status: 'error',
+              durationMs: responseTime,
+              error: `HTTP ${response.status}`,
+            });
+
+            if (response.status === 404) {
+              return {
+                success: false,
+                error: "Profile not found",
+                message: "No profile found for this LinkedIn URL. The person may not be in our database.",
+              };
+            }
+
+            return {
+              success: false,
+              error: `API error: ${response.status}`,
+              message: "Failed to lookup profile. Please try again later.",
+            };
+          }
+
+          const result = await response.json();
+
+          await logApiUsage({
+            orgId,
+            provider: 'rocketreach',
+            endpoint: '/api/v2/person/lookup',
+            method: 'GET',
+            units: 1,
+            status: 'success',
+            durationMs: responseTime,
+          });
+
+          // Extract and format contact info
+          const emails = Array.isArray(result.emails)
+            ? result.emails.map((e: string | { email?: string }) => typeof e === 'string' ? e : e.email).filter(Boolean)
+            : [];
+          const phones = Array.isArray(result.phones)
+            ? result.phones.map((p: string | { number?: string }) => typeof p === 'string' ? p : p.number).filter(Boolean)
+            : [];
+
+          const leadData = {
+            personId: result.id?.toString() || `linkedin_${Date.now()}`,
+            name: result.name || `${result.first_name || ''} ${result.last_name || ''}`.trim(),
+            firstName: result.first_name,
+            lastName: result.last_name,
+            title: result.current_title || result.title,
+            company: result.current_employer || result.employer,
+            emails,
+            phones,
+            linkedin: result.linkedin_url || linkedinUrl,
+            location: result.location,
+          };
+
+          // Auto-save the lead
+          await upsertLead(orgId, leadData.personId, {
+            source: 'linkedin_lookup',
+            ...leadData,
+            raw: result,
+          });
+
+          return {
+            success: true,
+            lead: {
+              name: leadData.name,
+              firstName: leadData.firstName,
+              lastName: leadData.lastName,
+              title: leadData.title,
+              company: leadData.company,
+              email: emails[0] || null,
+              phone: phones[0] || null,
+              allEmails: emails,
+              allPhones: phones,
+              linkedin: leadData.linkedin,
+              location: leadData.location,
+            },
+            message: `✅ **Contact Found!**\n\n👤 **${leadData.name}**\n${leadData.title ? `📋 ${leadData.title}` : ''}\n${leadData.company ? `🏢 ${leadData.company}` : ''}\n${emails[0] ? `📧 **Email:** ${emails[0]}` : '⚠️ No email found'}\n${phones[0] ? `📱 **Phone:** ${phones[0]}` : '⚠️ No phone found'}\n${leadData.location ? `📍 ${leadData.location}` : ''}\n\n✓ Lead saved to your database`,
+          };
+        } catch (error) {
+          console.error("lookupLinkedInProfile error:", error);
+          return {
+            success: false,
+            error: error instanceof Error ? error.message : "Lookup failed",
+            message: "Failed to lookup LinkedIn profile. Please check the URL and try again.",
+          };
+        }
+      },
+    },
     sendWhatsApp: {
       description: "Send a WhatsApp message to leads. Use this when user wants to send WhatsApp messages. Requires phone numbers and message content. Note: WhatsApp integration must be configured in settings.",
       inputSchema: z.object({
