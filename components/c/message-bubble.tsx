@@ -81,28 +81,28 @@ export function MessageBubble({
                       remarkPlugins={[remarkGfm, remarkMath]}
                       rehypePlugins={[rehypeKatex, rehypeHighlight]}
                       components={{
-                        // Tables - Full width with smaller text for better data visibility
+                        // Tables - Modern card-style with gradient header
                         // eslint-disable-next-line @typescript-eslint/no-unused-vars
                         table: ({ node, ...props }) => (
-                          <div className="overflow-x-auto my-4 w-full -mx-4 px-4">
-                            <table className="min-w-full divide-y divide-border border border-border rounded-lg overflow-hidden text-xs" {...props} />
+                          <div className="my-6 w-full rounded-xl border border-border/50 bg-card shadow-lg overflow-hidden">
+                            <table className="w-full text-sm" {...props} />
                           </div>
                         ),
                         // eslint-disable-next-line @typescript-eslint/no-unused-vars
                         thead: ({ node, ...props }) => (
-                          <thead className="bg-secondary" {...props} />
+                          <thead className="bg-gradient-to-r from-primary/10 via-primary/5 to-transparent border-b border-border/50" {...props} />
                         ),
                         // eslint-disable-next-line @typescript-eslint/no-unused-vars
                         th: ({ node, ...props }) => (
-                          <th className="px-3 py-2 text-left text-xs font-semibold text-foreground uppercase tracking-wide whitespace-nowrap" {...props} />
+                          <th className="px-4 py-3 text-left text-xs font-bold text-foreground uppercase tracking-wider" {...props} />
                         ),
                         // eslint-disable-next-line @typescript-eslint/no-unused-vars
                         td: ({ node, ...props }) => (
-                          <td className="px-3 py-2 text-xs text-foreground border-t border-border whitespace-nowrap" {...props} />
+                          <td className="px-4 py-3 text-sm text-foreground" {...props} />
                         ),
                         // eslint-disable-next-line @typescript-eslint/no-unused-vars
                         tr: ({ node, ...props }) => (
-                          <tr className="hover:bg-secondary/50 transition-colors" {...props} />
+                          <tr className="border-b border-border/30 last:border-0 hover:bg-primary/5 transition-all duration-200" {...props} />
                         ),
                         // Code blocks with syntax highlighting
                         code: ({ className, children, ...props }: React.HTMLAttributes<HTMLElement> & { children?: React.ReactNode }) => {

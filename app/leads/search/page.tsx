@@ -8,8 +8,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Checkbox } from '@/components/ui/checkbox';
 import { toast } from 'sonner';
-import { Search, Loader2, Save, Mail, Phone, Linkedin, Building2 } from 'lucide-react';
+import { Search, Loader2, Save, Mail, Phone, Linkedin, Building2, Sparkles, Download, ArrowRight } from 'lucide-react';
 import { Textarea } from '@/components/ui/textarea';
+import Link from 'next/link';
 
 interface LeadResult {
   id: string;
@@ -239,26 +240,68 @@ export default function LeadsSearchPage() {
   const selectedCount = Object.values(selected).filter(Boolean).length;
 
   return (
-    <div className="min-h-screen bg-[#F7F5F3]">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
-        <div>
-          <h1 className="text-3xl font-semibold text-[#37322F] font-serif">Lead Search</h1>
-          <p className="text-[#605A57] mt-2">Find and save leads using Logician</p>
+    <div className="min-h-screen bg-gradient-to-b from-background via-background to-muted/20">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+        {/* Header */}
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+          <div>
+            <div className="flex items-center gap-3 mb-2">
+              <div className="p-2 bg-gradient-to-br from-primary/20 to-primary/5 rounded-xl">
+                <Search className="w-6 h-6 text-primary" />
+              </div>
+              <h1 className="text-3xl font-bold text-foreground">Lead Search</h1>
+            </div>
+            <p className="text-muted-foreground ml-12">Find decision makers with verified contact information</p>
+          </div>
+          <div className="flex gap-3">
+            <Button asChild variant="outline" className="gap-2">
+              <Link href="/c">
+                <Sparkles className="w-4 h-4" />
+                Use AI Instead
+              </Link>
+            </Button>
+          </div>
         </div>
 
-        <Card className="border-[rgba(55,50,47,0.12)] bg-white">
+        {/* AI Suggestion Banner */}
+        <Card className="bg-gradient-to-r from-primary/10 via-primary/5 to-transparent border-primary/20">
+          <CardContent className="py-4">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-primary/10 rounded-lg">
+                  <Sparkles className="w-5 h-5 text-primary" />
+                </div>
+                <div>
+                  <p className="font-medium text-foreground">Want faster results?</p>
+                  <p className="text-sm text-muted-foreground">Just tell our AI what leads you need - it's much easier!</p>
+                </div>
+              </div>
+              <Button asChild size="sm" className="gap-2">
+                <Link href="/c">
+                  Try AI Search
+                  <ArrowRight className="w-4 h-4" />
+                </Link>
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="border-border/50 shadow-lg">
           <CardHeader>
-            <CardTitle className="text-[#37322F]">Search Criteria</CardTitle>
-            <CardDescription className="text-[#605A57]">Enter search parameters to find leads</CardDescription>
+            <CardTitle className="flex items-center gap-2">
+              <Search className="w-5 h-5 text-primary" />
+              Search Criteria
+            </CardTitle>
+            <CardDescription>Enter search parameters to find leads with emails and phone numbers</CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
             {/* LinkedIn URL Lookup */}
-            <div className="p-4 border border-[rgba(55,50,47,0.12)] rounded-lg bg-[#F7F5F3]">
+            <div className="p-5 border border-blue-200 dark:border-blue-900 rounded-xl bg-gradient-to-r from-blue-50 to-cyan-50 dark:from-blue-950/50 dark:to-cyan-950/50">
               <div className="flex items-center gap-2 mb-3">
                 <Linkedin className="w-5 h-5 text-[#0A66C2]" />
-                <Label className="text-[#37322F] font-semibold">LinkedIn URL Lookup</Label>
+                <Label className="text-foreground font-semibold">LinkedIn URL Lookup</Label>
               </div>
-              <p className="text-sm text-[#605A57] mb-3">
+              <p className="text-sm text-muted-foreground mb-3">
                 Paste one or more LinkedIn profile URLs (separate with commas or new lines) to enrich and save contacts.
               </p>
               <div className="flex flex-col md:flex-row gap-3">
@@ -266,7 +309,7 @@ export default function LeadsSearchPage() {
                   placeholder={"https://linkedin.com/in/profile-name\nhttps://linkedin.com/in/another-profile"}
                   value={linkedinUrl}
                   onChange={(e) => setLinkedinUrl(e.target.value)}
-                  className="flex-1 bg-white border-[rgba(55,50,47,0.12)] text-[#37322F]"
+                  className="flex-1 bg-background border-border"
                   rows={4}
                 />
                 <Button
@@ -291,66 +334,61 @@ export default function LeadsSearchPage() {
 
             <div className="relative">
               <div className="absolute inset-0 flex items-center">
-                <span className="w-full border-t border-[rgba(55,50,47,0.12)]" />
+                <span className="w-full border-t border-border" />
               </div>
               <div className="relative flex justify-center text-xs uppercase">
-                <span className="bg-white px-2 text-[#605A57]">Or search by criteria</span>
+                <span className="bg-card px-2 text-muted-foreground">Or search by criteria</span>
               </div>
             </div>
 
             <div className="grid md:grid-cols-5 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="name" className="text-[#37322F]">Name</Label>
+                <Label htmlFor="name">Name</Label>
                 <Input
                   id="name"
                   placeholder="John Doe"
                   value={query.name}
                   onChange={(e) => setQuery({ ...query, name: e.target.value })}
-                  className="bg-white border-[rgba(55,50,47,0.12)] text-[#37322F]"
                 />
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="title" className="text-[#37322F]">Title</Label>
+                <Label htmlFor="title">Title</Label>
                 <Input
                   id="title"
-                  placeholder="CEO"
+                  placeholder="CEO, CTO, VP..."
                   value={query.title}
                   onChange={(e) => setQuery({ ...query, title: e.target.value })}
-                  className="bg-white border-[rgba(55,50,47,0.12)] text-[#37322F]"
                 />
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="company" className="text-[#37322F]">Company</Label>
+                <Label htmlFor="company">Company</Label>
                 <Input
                   id="company"
                   placeholder="Acme Inc"
                   value={query.company}
                   onChange={(e) => setQuery({ ...query, company: e.target.value })}
-                  className="bg-white border-[rgba(55,50,47,0.12)] text-[#37322F]"
                 />
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="domain" className="text-[#37322F]">Domain</Label>
+                <Label htmlFor="domain">Domain</Label>
                 <Input
                   id="domain"
                   placeholder="example.com"
                   value={query.domain}
                   onChange={(e) => setQuery({ ...query, domain: e.target.value })}
-                  className="bg-white border-[rgba(55,50,47,0.12)] text-[#37322F]"
                 />
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="location" className="text-[#37322F]">Location</Label>
+                <Label htmlFor="location">Location</Label>
                 <Input
                   id="location"
                   placeholder="New York, NY"
                   value={query.location}
                   onChange={(e) => setQuery({ ...query, location: e.target.value })}
-                  className="bg-white border-[rgba(55,50,47,0.12)] text-[#37322F]"
                 />
               </div>
             </div>
@@ -358,17 +396,18 @@ export default function LeadsSearchPage() {
             <Button
               onClick={handleSearch}
               disabled={loading}
-              className="bg-[#37322F] text-white hover:bg-[#37322F]/90"
+              size="lg"
+              className="gap-2"
             >
               {loading ? (
                 <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  <Loader2 className="h-4 w-4 animate-spin" />
                   Searching...
                 </>
               ) : (
                 <>
-                  <Search className="mr-2 h-4 w-4" />
-                  Search
+                  <Search className="h-4 w-4" />
+                  Search Leads
                 </>
               )}
             </Button>
@@ -376,53 +415,58 @@ export default function LeadsSearchPage() {
         </Card>
 
         {results.length > 0 && (
-          <Card className="border-[rgba(55,50,47,0.12)] bg-white">
-            <CardHeader>
+          <Card className="border-border/50 shadow-lg overflow-hidden">
+            <CardHeader className="bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-950/30 dark:to-emerald-950/30 border-b border-border/50">
               <div className="flex items-center justify-between">
                 <div>
-                  <CardTitle className="text-[#37322F]">Results ({results.length})</CardTitle>
-                  <CardDescription className="text-[#605A57]">
-                    {selectedCount > 0 ? `${selectedCount} lead(s) selected` : 'Select leads to save'}
+                  <CardTitle className="flex items-center gap-2 text-green-700 dark:text-green-400">
+                    <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
+                    Found {results.length} Leads
+                  </CardTitle>
+                  <CardDescription>
+                    {selectedCount > 0 ? `${selectedCount} lead(s) selected` : 'Select leads to save to your database'}
                   </CardDescription>
                 </div>
-                {selectedCount > 0 && (
-                  <Button
-                    onClick={handleSave}
-                    disabled={saving}
-                    variant="default"
-                    className="bg-[#37322F] text-white hover:bg-[#37322F]/90"
-                  >
-                    {saving ? (
-                      <>
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Saving...
-                      </>
-                    ) : (
-                      <>
-                        <Save className="mr-2 h-4 w-4" />
-                        Save Selected
-                      </>
-                    )}
-                  </Button>
-                )}
+                <div className="flex gap-2">
+                  {selectedCount > 0 && (
+                    <Button
+                      onClick={handleSave}
+                      disabled={saving}
+                      className="gap-2"
+                    >
+                      {saving ? (
+                        <>
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                          Saving...
+                        </>
+                      ) : (
+                        <>
+                          <Save className="h-4 w-4" />
+                          Save {selectedCount} Lead{selectedCount > 1 ? 's' : ''}
+                        </>
+                      )}
+                    </Button>
+                  )}
+                </div>
               </div>
             </CardHeader>
-            <CardContent>
-              <div className="rounded-md border border-[rgba(55,50,47,0.12)]">
+            <CardContent className="p-0">
+              <div className="overflow-x-auto">
                 <Table>
                   <TableHeader>
-                    <TableRow className="hover:bg-transparent border-b border-[rgba(55,50,47,0.12)]">
+                    <TableRow className="bg-muted/30 hover:bg-muted/30">
                       <TableHead className="w-12"></TableHead>
-                      <TableHead className="text-[#37322F]">Name</TableHead>
-                      <TableHead className="text-[#37322F]">Title</TableHead>
-                      <TableHead className="text-[#37322F]">Company</TableHead>
-                      <TableHead className="text-[#37322F]">Contact</TableHead>
-                      <TableHead className="text-[#37322F]">Location</TableHead>
+                      <TableHead className="font-semibold">Name</TableHead>
+                      <TableHead className="font-semibold">Title</TableHead>
+                      <TableHead className="font-semibold">Company</TableHead>
+                      <TableHead className="font-semibold">📧 Email</TableHead>
+                      <TableHead className="font-semibold">📱 Phone</TableHead>
+                      <TableHead className="font-semibold">Location</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {results.map((lead) => (
-                      <TableRow key={lead.id} className="border-b border-[rgba(55,50,47,0.06)]">
+                      <TableRow key={lead.id} className="hover:bg-primary/5 transition-colors">
                         <TableCell>
                           <Checkbox
                             checked={!!selected[lead.id]}
@@ -431,46 +475,50 @@ export default function LeadsSearchPage() {
                             }
                           />
                         </TableCell>
-                        <TableCell className="font-medium text-[#37322F]">{lead.name}</TableCell>
-                        <TableCell className="text-[#605A57]">
+                        <TableCell>
+                          <div className="font-medium text-foreground">{lead.name}</div>
+                          {lead.linkedin_url && (
+                            <a
+                              href={lead.linkedin_url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="inline-flex items-center gap-1 text-xs text-blue-600 hover:underline mt-1"
+                            >
+                              <Linkedin className="h-3 w-3" />
+                              Profile
+                            </a>
+                          )}
+                        </TableCell>
+                        <TableCell className="text-muted-foreground">
                           {lead.current_title || lead.title || '-'}
                         </TableCell>
                         <TableCell>
-                          <div className="flex items-center gap-1">
-                            <Building2 className="h-4 w-4 text-[#605A57]" />
-                            <span className="text-[#605A57]">
-                              {lead.current_employer || lead.company || '-'}
-                            </span>
+                          <div className="flex items-center gap-1.5">
+                            <Building2 className="h-4 w-4 text-muted-foreground" />
+                            <span>{lead.current_employer || lead.company || '-'}</span>
                           </div>
                         </TableCell>
                         <TableCell>
-                          <div className="flex flex-col gap-1">
-                            {lead.emails && lead.emails.length > 0 && (
-                              <div className="flex items-center gap-1">
-                                <Mail className="h-3 w-3 text-[#605A57]" />
-                                <span className="text-xs text-[#605A57]">{lead.emails[0]}</span>
-                              </div>
-                            )}
-                            {lead.phones && lead.phones.length > 0 && (
-                              <div className="flex items-center gap-1">
-                                <Phone className="h-3 w-3 text-[#605A57]" />
-                                <span className="text-xs text-[#605A57]">{lead.phones[0]}</span>
-                              </div>
-                            )}
-                            {lead.linkedin_url && (
-                              <a
-                                href={lead.linkedin_url}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="flex items-center gap-1 text-[#37322F] hover:text-[#37322F]/80"
-                              >
-                                <Linkedin className="h-3 w-3" />
-                                <span className="text-xs">LinkedIn</span>
-                              </a>
-                            )}
-                          </div>
+                          {lead.emails && lead.emails.length > 0 ? (
+                            <div className="flex items-center gap-1.5 text-green-600 dark:text-green-400">
+                              <Mail className="h-4 w-4" />
+                              <span className="text-sm">{lead.emails[0]}</span>
+                            </div>
+                          ) : (
+                            <span className="text-muted-foreground text-sm">-</span>
+                          )}
                         </TableCell>
-                        <TableCell className="text-[#605A57] text-sm">
+                        <TableCell>
+                          {lead.phones && lead.phones.length > 0 ? (
+                            <div className="flex items-center gap-1.5 text-blue-600 dark:text-blue-400">
+                              <Phone className="h-4 w-4" />
+                              <span className="text-sm">{lead.phones[0]}</span>
+                            </div>
+                          ) : (
+                            <span className="text-muted-foreground text-sm">-</span>
+                          )}
+                        </TableCell>
+                        <TableCell className="text-muted-foreground text-sm">
                           {lead.location || '-'}
                         </TableCell>
                       </TableRow>

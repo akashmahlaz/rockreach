@@ -7,7 +7,6 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import {
   Loader2,
-  Plus,
   Send,
 } from "lucide-react";
 import { toast } from "sonner";
@@ -687,63 +686,56 @@ export function ChatClient({ conversationId, user }: ChatClientProps) {
             </div>
           </div>
 
-          {/* Input Area - ChatGPT Style */}
-          <div className="bg-background pb-3 sm:pb-6 pt-2 px-2 sm:px-0">
+          {/* Input Area - Modern Glass Style */}
+          <div className="bg-gradient-to-t from-background via-background to-transparent pb-4 sm:pb-6 pt-4 px-3 sm:px-0">
             <div className="mx-auto max-w-3xl sm:px-4">
               <form onSubmit={handleSubmit} className="relative">
-                <div className="flex items-end gap-2 dark:bg-slate-800 bg-slate-100 rounded-2xl sm:rounded-full px-4 sm:px-8 py-3 sm:py-6 border-none transition-all">
-                  <button
-                    type="button"
-                    className="text-muted-foreground hover:text-foreground transition-colors pb-1.5 hidden sm:block"
-                  >
-                    <Plus className="h-5 w-5" />
-                  </button>
+                <div className="flex items-end gap-3 bg-gradient-to-r from-muted/80 to-muted/60 dark:from-slate-800/90 dark:to-slate-800/70 rounded-2xl px-4 sm:px-6 py-4 border border-border/50 shadow-lg shadow-black/5 backdrop-blur-sm transition-all hover:border-primary/30 focus-within:border-primary/50 focus-within:shadow-primary/10">
                   <Textarea
                     ref={textareaRef}
                     rows={1}
                     value={localInput}
                     onChange={(e) => setLocalInput(e.target.value)}
                     onKeyDown={handleKeyDown}
-                    placeholder="Give me 25 app development clients..."
+                    placeholder="Find me 25 real estate agents in Miami with emails and phone numbers..."
                     disabled={isLoading}
-                    className="flex-1 bg-transparent border-none text-foreground placeholder:text-muted-foreground resize-none focus:outline-none focus:ring-0 focus-visible:ring-0 focus-visible:outline-none text-sm sm:text-[15px] leading-relaxed min-h-6 max-h-[200px] py-1.5"
+                    className="flex-1 bg-transparent border-none text-foreground placeholder:text-muted-foreground/70 resize-none focus:outline-none focus:ring-0 focus-visible:ring-0 focus-visible:outline-none text-sm sm:text-[15px] leading-relaxed min-h-6 max-h-[200px] py-1"
                   />
                   <Button
                     type="submit"
                     disabled={!localInput.trim() || isLoading}
                     size="icon"
-                    variant={localInput.trim() ? "default" : "ghost"}
                     className={cn(
-                      "h-7 w-7 sm:h-8 sm:w-8 rounded-full shrink-0 transition-all mb-0.5",
+                      "h-10 w-10 rounded-xl shrink-0 transition-all duration-300",
                       localInput.trim()
-                        ? "bg-primary text-primary-foreground hover:bg-primary/90"
-                        : "text-muted-foreground hover:text-foreground hover:bg-muted"
+                        ? "bg-gradient-to-r from-primary to-primary/80 text-primary-foreground hover:from-primary/90 hover:to-primary/70 shadow-lg shadow-primary/25"
+                        : "bg-muted text-muted-foreground hover:bg-muted/80"
                     )}
                   >
                     {isLoading ? (
-                      <Loader2 className="h-4 w-4 animate-spin" />
+                      <Loader2 className="h-5 w-5 animate-spin" />
                     ) : (
-                      <Send className="h-4 w-4" />
+                      <Send className="h-5 w-5" />
                     )}
                   </Button>
                 </div>
               </form>
               {isLoading && (
-                <div className="mt-3 flex justify-center">
+                <div className="mt-4 flex justify-center">
                   <Button
                     variant="outline"
                     size="sm"
                     onClick={stop}
-                    className="h-8 text-xs gap-2 hover:bg-destructive/10 hover:text-destructive hover:border-destructive/30 transition-colors"
+                    className="h-9 px-4 text-sm gap-2 rounded-xl hover:bg-destructive/10 hover:text-destructive hover:border-destructive/30 transition-all duration-200"
                   >
-                    <div className="w-2 h-2 bg-current rounded-sm" />
+                    <div className="w-2 h-2 bg-current rounded-sm animate-pulse" />
                     Stop generating
                   </Button>
                 </div>
               )}
-              <div className="mt-2 text-center">
-                <p className="text-[10px] text-muted-foreground/60">
-                  AI can make mistakes. Check important info.
+              <div className="mt-3 text-center">
+                <p className="text-xs text-muted-foreground/50">
+                  Press Enter to send • Shift+Enter for new line
                 </p>
               </div>
             </div>
