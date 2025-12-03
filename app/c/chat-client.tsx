@@ -16,7 +16,9 @@ import { MessageBubble } from "@/components/c/message-bubble";
 import { EmptyState } from "@/components/c/empty-state";
 import { ChatSkeleton, ResponseLoadingSkeleton } from "@/components/c/chat-skeleton";
 import { fetchWithRetry } from "@/lib/fetch-with-retry";
-import { SimpleSidebar } from "@/components/c/simple-sidebar";
+import { AppSidebarV2 } from "@/components/c/app-sidebar-v2";
+import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
+import { Separator } from "@/components/ui/separator";
 
 interface ChatClientProps {
   conversationId: string | null;
@@ -590,8 +592,8 @@ export function ChatClient({ conversationId, user }: ChatClientProps) {
   };
 
   return (
-    <div className="flex h-screen w-full overflow-hidden bg-background">
-      <SimpleSidebar
+    <SidebarProvider>
+      <AppSidebarV2
         user={user}
         conversations={conversations}
         activeConvId={activeConvId}
@@ -600,148 +602,159 @@ export function ChatClient({ conversationId, user }: ChatClientProps) {
         onDeleteConversation={deleteConversation}
         onRenameConversation={renameConversation}
       />
-      <div className="flex flex-1 flex-col overflow-hidden w-full md:w-auto">
-        <div className="flex flex-1 flex-col gap-4 p-2 sm:p-4 h-full overflow-hidden relative">
-          {/* Messages */}
-          <div className="flex-1 overflow-hidden">
-            <div ref={scrollRef} className="h-full overflow-y-auto">
-              <div className="mx-auto max-w-3xl px-2 sm:px-4 py-4 sm:py-8 ml-0 md:ml-auto">
-                {isSwitchingConversation ? (
-                  <ChatSkeleton />
-                ) : messages.length === 0 && !isLoading ? (
-                  <EmptyState
-                    onExampleClick={(text) => {
-                      setLocalInput(text);
-                      setTimeout(() => {
-                        sendMessage({ text });
-                        setLocalInput("");
-                      }, 100);
-                    }}
-                  />
-                ) : (
-                  <div className="space-y-6">
-                    {messages.map((message) => {
-                      // Add safety check for message structure
-                      if (!message || !message.id) {
-                        console.warn(
-                          "[Message Render] Invalid message:",
-                          message,
+      <SidebarInset>
+        <header className="flex h-14 shrink-0 items-center gap-2 border-b bg-background/95 backdrop-blur px-4 transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12">
+          <SidebarTrigger className="-ml-1" />
+          <Separator orientation="vertical" className="mr-2 h-4" />
+          <div className="flex items-center gap-2">
+            <span className="text-sm font-medium text-foreground">
+              {activeConv?.title || "New Chat"}
+            </span>
+          </div>
+        </header>
+        <div className="flex flex-1 flex-col overflow-hidden">
+          <div className="flex flex-1 flex-col gap-4 p-2 sm:p-4 h-full overflow-hidden relative">
+            {/* Messages */}
+            <div className="flex-1 overflow-hidden">
+              <div ref={scrollRef} className="h-full overflow-y-auto">
+                <div className="mx-auto max-w-3xl px-2 sm:px-4 py-4 sm:py-8">
+                  {isSwitchingConversation ? (
+                    <ChatSkeleton />
+                  ) : messages.length === 0 && !isLoading ? (
+                    <EmptyState
+                      onExampleClick={(text) => {
+                        setLocalInput(text);
+                        setTimeout(() => {
+                          sendMessage({ text });
+                          setLocalInput("");
+                        }, 100);
+                      }}
+                    />
+                  ) : (
+                    <div className="space-y-6">
+                      {messages.map((message) => {
+                        // Add safety check for message structure
+                        if (!message || !message.id) {
+                          console.warn(
+                            "[Message Render] Invalid message:",
+                            message,
+                          );
+                          return null;
+                        }
+
+                        return (
+                          <MessageBubble
+                            key={message.id}
+                            message={message}
+                            isEditing={editingMessageId === message.id}
+                            editContent={editContent}
+                            onEditChange={setEditContent}
+                            onSaveEdit={saveEdit}
+                            onCancelEdit={() => setEditingMessageId(null)}
+                            onCopy={() => copyMessage(message)}
+                          />
                         );
-                        return null;
-                      }
-
-                      return (
-                        <MessageBubble
-                          key={message.id}
-                          message={message}
-                          isEditing={editingMessageId === message.id}
-                          editContent={editContent}
-                          onEditChange={setEditContent}
-                          onSaveEdit={saveEdit}
-                          onCancelEdit={() => setEditingMessageId(null)}
-                          onCopy={() => copyMessage(message)}
-                        />
-                      );
-                    })}
-                  </div>
-                )
-                }
-
-                {isLoading && messages.length > 0 && (
-                  <ResponseLoadingSkeleton />
-                )}
-
-                {/* Error State - only show for real failures, not SDK /responses quirks */}
-                {error &&
-                  !error.message?.includes("/responses") &&
-                  !error.message?.includes("Failed to parse URL") && (
-                    <div className="mt-6 rounded-lg border border-destructive/20 bg-destructive/5 p-4">
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm text-destructive">
-                          An error occurred. Please try again.
-                        </span>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => {
-                            const lastUserMessage = messages
-                              .filter((m) => m.role === "user")
-                              .pop();
-                            if (lastUserMessage) {
-                              const textContent = lastUserMessage.parts
-                                .filter((p) => p.type === "text")
-                                .map((p) => p.text)
-                                .join("");
-                              sendMessage({ text: textContent });
-                            }
-                          }}
-                          className="border-destructive/30 text-destructive hover:bg-destructive/10"
-                        >
-                          Retry
-                        </Button>
-                      </div>
+                      })}
                     </div>
+                  )
+                  }
+
+                  {isLoading && messages.length > 0 && (
+                    <ResponseLoadingSkeleton />
                   )}
+
+                  {/* Error State - only show for real failures, not SDK /responses quirks */}
+                  {error &&
+                    !error.message?.includes("/responses") &&
+                    !error.message?.includes("Failed to parse URL") && (
+                      <div className="mt-6 rounded-lg border border-destructive/20 bg-destructive/5 p-4">
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm text-destructive">
+                            An error occurred. Please try again.
+                          </span>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => {
+                              const lastUserMessage = messages
+                                .filter((m) => m.role === "user")
+                                .pop();
+                              if (lastUserMessage) {
+                                const textContent = lastUserMessage.parts
+                                  .filter((p) => p.type === "text")
+                                  .map((p) => p.text)
+                                  .join("");
+                                sendMessage({ text: textContent });
+                              }
+                            }}
+                            className="border-destructive/30 text-destructive hover:bg-destructive/10"
+                          >
+                            Retry
+                          </Button>
+                        </div>
+                      </div>
+                    )}
+                </div>
               </div>
             </div>
-          </div>
 
-          {/* Input Area - Modern Glass Style */}
-          <div className="bg-gradient-to-t from-background via-background to-transparent pb-4 sm:pb-6 pt-4 px-3 sm:px-0">
-            <div className="mx-auto max-w-3xl sm:px-4">
-              <form onSubmit={handleSubmit} className="relative">
-                <div className="flex items-end gap-3 bg-gradient-to-r from-muted/80 to-muted/60 dark:from-slate-800/90 dark:to-slate-800/70 rounded-2xl px-4 sm:px-6 py-4 border border-border/50 shadow-lg shadow-black/5 backdrop-blur-sm transition-all hover:border-primary/30 focus-within:border-primary/50 focus-within:shadow-primary/10">
-                  <Textarea
-                    ref={textareaRef}
-                    rows={1}
-                    value={localInput}
-                    onChange={(e) => setLocalInput(e.target.value)}
-                    onKeyDown={handleKeyDown}
-                    placeholder="Find me 25 real estate agents in Miami with emails and phone numbers..."
-                    disabled={isLoading}
-                    className="flex-1 bg-transparent border-none text-foreground placeholder:text-muted-foreground/70 resize-none focus:outline-none focus:ring-0 focus-visible:ring-0 focus-visible:outline-none text-sm sm:text-[15px] leading-relaxed min-h-6 max-h-[200px] py-1"
-                  />
-                  <Button
-                    type="submit"
-                    disabled={!localInput.trim() || isLoading}
-                    size="icon"
-                    className={cn(
-                      "h-10 w-10 rounded-xl shrink-0 transition-all duration-300",
-                      localInput.trim()
-                        ? "bg-gradient-to-r from-primary to-primary/80 text-primary-foreground hover:from-primary/90 hover:to-primary/70 shadow-lg shadow-primary/25"
-                        : "bg-muted text-muted-foreground hover:bg-muted/80"
-                    )}
-                  >
-                    {isLoading ? (
-                      <Loader2 className="h-5 w-5 animate-spin" />
-                    ) : (
-                      <Send className="h-5 w-5" />
-                    )}
-                  </Button>
+            {/* Input Area - Modern Glass Style */}
+            <div className="bg-gradient-to-t from-background via-background to-transparent pb-4 sm:pb-6 pt-4 px-3 sm:px-0">
+              <div className="mx-auto max-w-3xl sm:px-4">
+                <form onSubmit={handleSubmit} className="relative">
+                  <div className="flex items-end gap-3 bg-gradient-to-r from-muted/80 to-muted/60 dark:from-slate-800/90 dark:to-slate-800/70 rounded-2xl px-4 sm:px-6 py-4 border border-border/50 shadow-lg shadow-black/5 backdrop-blur-sm transition-all hover:border-primary/30 focus-within:border-primary/50 focus-within:shadow-primary/10">
+                    <Textarea
+                      ref={textareaRef}
+                      rows={1}
+                      value={localInput}
+                      onChange={(e) => setLocalInput(e.target.value)}
+                      onKeyDown={handleKeyDown}
+                      placeholder="Find me 25 real estate agents in Miami with emails and phone numbers..."
+                      disabled={isLoading}
+                      className="flex-1 bg-transparent border-none text-foreground placeholder:text-muted-foreground/70 resize-none focus:outline-none focus:ring-0 focus-visible:ring-0 focus-visible:outline-none text-sm sm:text-[15px] leading-relaxed min-h-6 max-h-[200px] py-1"
+                    />
+                    <Button
+                      type="submit"
+                      disabled={!localInput.trim() || isLoading}
+                      size="icon"
+                      className={cn(
+                        "h-10 w-10 rounded-xl shrink-0 transition-all duration-300",
+                        localInput.trim()
+                          ? "bg-gradient-to-r from-primary to-primary/80 text-primary-foreground hover:from-primary/90 hover:to-primary/70 shadow-lg shadow-primary/25"
+                          : "bg-muted text-muted-foreground hover:bg-muted/80"
+                      )}
+                    >
+                      {isLoading ? (
+                        <Loader2 className="h-5 w-5 animate-spin" />
+                      ) : (
+                        <Send className="h-5 w-5" />
+                      )}
+                    </Button>
+                  </div>
+                </form>
+                {isLoading && (
+                  <div className="mt-4 flex justify-center">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={stop}
+                      className="h-9 px-4 text-sm gap-2 rounded-xl hover:bg-destructive/10 hover:text-destructive hover:border-destructive/30 transition-all duration-200"
+                    >
+                      <div className="w-2 h-2 bg-current rounded-sm animate-pulse" />
+                      Stop generating
+                    </Button>
+                  </div>
+                )}
+                <div className="mt-3 text-center">
+                  <p className="text-xs text-muted-foreground/50">
+                    Press Enter to send • Shift+Enter for new line
+                  </p>
                 </div>
-              </form>
-              {isLoading && (
-                <div className="mt-4 flex justify-center">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={stop}
-                    className="h-9 px-4 text-sm gap-2 rounded-xl hover:bg-destructive/10 hover:text-destructive hover:border-destructive/30 transition-all duration-200"
-                  >
-                    <div className="w-2 h-2 bg-current rounded-sm animate-pulse" />
-                    Stop generating
-                  </Button>
-                </div>
-              )}
-              <div className="mt-3 text-center">
-                <p className="text-xs text-muted-foreground/50">
-                  Press Enter to send • Shift+Enter for new line
-                </p>
               </div>
             </div>
           </div>
         </div>
-      </div>
-    </div>
+      </SidebarInset>
+    </SidebarProvider>
   );
 }
