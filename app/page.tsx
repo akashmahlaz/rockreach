@@ -8,12 +8,16 @@ import CTASection from "@/components/marketing/cta"
 import FooterSection from "@/components/marketing/footer"
 import { FeaturedVideo } from "@/components/home/video"
 import { auth } from "@/auth" 
+import SignIn from "@/components/auth/sign-in"
 
 export default async function LandingPage() {
   const session = await auth(); 
   const isAdmin = session?.user?.role === "admin"; 
 
   // --- 1. IF USER IS NOT ADMIN (The Unique Design) ---
+  if (!session){
+    return <SignIn/>
+  }
   if (!isAdmin) {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen bg-black overflow-hidden relative selection:bg-red-500 selection:text-black">
