@@ -10,7 +10,7 @@ export default function SignIn() {
       onClick={() => signIn("google")}
       variant="default"
       size="sm"
-      className="font-medium bg-white rounded-4xl text-3xl"
+      className="font-medium bg-white rounded-4xl text-4xl text-black p-6 m-2"
     >
       Log in
     </Button>
