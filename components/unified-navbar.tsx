@@ -73,14 +73,14 @@ export function UnifiedNavbar({ user }: UnifiedNavbarProps) {
   }
 
   return (
-    <nav className="sticky mb-2.5 top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-backdrop-filter:bg-background/60">
+    <nav className="sticky mb-2.5 top-0 z-50 w-full border-b border-border/40 bg-background/80 backdrop-blur-xl supports-backdrop-filter:bg-background/60 shadow-sm">
       <div className="flex h-16 items-center justify-between px-4 md:px-6 lg:px-8 max-w-full mx-auto">
         {/* Logo */}
-        <Link href={isAuthenticated ? "/dashboard" : "/"} className="flex items-center space-x-2">
-          <div className="flex lg:hidden items-center justify-center w-8 h-8 rounded-lg bg-primary text-primary-foreground font-bold text-sm">
-            L
+        <Link href={isAuthenticated ? "/dashboard" : "/"} className="flex items-center space-x-2 group">
+          <div className="flex lg:hidden items-center justify-center w-9 h-9 rounded-xl bg-gradient-to-br from-primary to-primary/70 text-primary-foreground font-bold text-sm shadow-md group-hover:shadow-lg transition-all duration-200">
+            R
           </div>
-          <span className="font-semibold font-sans bg-linear-to-t from-amber-200 to-white p-2 border border-gray-100 rounded-2xl text-lg hidden sm:inline-block">LogiGrow</span>
+          <span className="font-bold text-lg hidden sm:inline-block bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text">RockReach</span>
         </Link>
 
         {/* Desktop Navigation with dropdowns */}
@@ -99,7 +99,7 @@ export function UnifiedNavbar({ user }: UnifiedNavbarProps) {
                           href="/"
                         >
                           <div className="mb-2 mt-4 text-lg font-medium">
-                            LogiGrow
+                            RockReach
                           </div>
                           <p className="text-sm leading-tight text-muted-foreground">
                             AI-powered lead generation and email outreach platform

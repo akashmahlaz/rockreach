@@ -232,6 +232,35 @@ function EmailSettings() {
 
 function WhatsAppSettings() {
   const [method, setMethod] = useState<'web' | 'business'>('web');
+  const [loading, setLoading] = useState(false);
+  const [config, setConfig] = useState({ apiUrl: '', apiKey: '', phoneNumberId: '' });
+
+  const handleSave = async () => {
+    setLoading(true);
+    try {
+      const res = await fetch('/api/assistant/settings', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          whatsapp: {
+            method,
+            ...(method === 'business' ? config : {}),
+            isEnabled: true,
+          },
+        }),
+      });
+
+      if (res.ok) {
+        toast.success('WhatsApp settings saved!');
+      } else {
+        toast.error('Failed to save settings');
+      }
+    } catch (error) {
+      toast.error('Failed to save settings');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <Card>
@@ -254,10 +283,10 @@ function WhatsAppSettings() {
         </div>
 
         {method === 'web' && (
-          <div className="p-4 bg-blue-50 dark:bg-blue-950 rounded-lg">
-            <p className="text-sm text-blue-900 dark:text-blue-100">
-              <strong>WhatsApp Web/App:</strong> Messages will open in WhatsApp Web or your installed WhatsApp application. 
-              This method is free and requires no API setup. Each message must be sent manually.
+          <div className="p-4 bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-950 dark:to-emerald-950 rounded-xl border border-green-200 dark:border-green-800">
+            <p className="text-sm text-green-900 dark:text-green-100">
+              <strong>✅ Ready to use!</strong> Messages will open in WhatsApp Web or your installed WhatsApp application. 
+              This method is free and requires no API setup.
             </p>
           </div>
         )}
@@ -269,6 +298,8 @@ function WhatsAppSettings() {
               <Input
                 id="whatsapp-api-url"
                 placeholder="https://api.whatsapp.com/send"
+                value={config.apiUrl}
+                onChange={(e) => setConfig({ ...config, apiUrl: e.target.value })}
               />
             </div>
             <div className="space-y-2">
@@ -277,6 +308,8 @@ function WhatsAppSettings() {
                 id="whatsapp-api-key"
                 type="password"
                 placeholder="Your WhatsApp Business API key"
+                value={config.apiKey}
+                onChange={(e) => setConfig({ ...config, apiKey: e.target.value })}
               />
             </div>
             <div className="space-y-2">
@@ -284,9 +317,11 @@ function WhatsAppSettings() {
               <Input
                 id="whatsapp-phone"
                 placeholder="Your WhatsApp Business phone number ID"
+                value={config.phoneNumberId}
+                onChange={(e) => setConfig({ ...config, phoneNumberId: e.target.value })}
               />
             </div>
-            <div className="p-4 bg-amber-50 dark:bg-amber-950 rounded-lg">
+            <div className="p-4 bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-950 dark:to-orange-950 rounded-xl border border-amber-200 dark:border-amber-800">
               <p className="text-sm text-amber-900 dark:text-amber-100">
                 <strong>Note:</strong> WhatsApp Business API requires verification and approval from Meta. 
                 Visit <a href="https://business.whatsapp.com" target="_blank" rel="noopener noreferrer" className="underline">business.whatsapp.com</a> to get started.
@@ -295,8 +330,8 @@ function WhatsAppSettings() {
           </>
         )}
 
-        <Button onClick={() => toast.success('WhatsApp settings saved!')}>
-          Save WhatsApp Settings
+        <Button onClick={handleSave} disabled={loading} className="w-full">
+          {loading ? 'Saving...' : 'Save WhatsApp Settings'}
         </Button>
       </CardContent>
     </Card>
@@ -304,6 +339,54 @@ function WhatsAppSettings() {
 }
 
 function APIKeysSettings() {
+  const [loading, setLoading] = useState(false);
+  const [apiKey, setApiKey] = useState('');
+  const [isEnabled, setIsEnabled] = useState(true);
+
+  useEffect(() => {
+    const loadSettings = async () => {
+      try {
+        const res = await fetch('/api/assistant/settings');
+        if (res.ok) {
+          const data = await res.json();
+          if (data.rocketreach) {
+            setApiKey(data.rocketreach.apiKey || '');
+            setIsEnabled(data.rocketreach.isEnabled !== false);
+          }
+        }
+      } catch (error) {
+        console.error('Failed to load API settings', error);
+      }
+    };
+    loadSettings();
+  }, []);
+
+  const handleSave = async () => {
+    setLoading(true);
+    try {
+      const res = await fetch('/api/assistant/settings', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          rocketreach: {
+            apiKey,
+            isEnabled,
+          },
+        }),
+      });
+
+      if (res.ok) {
+        toast.success('API keys saved successfully!');
+      } else {
+        toast.error('Failed to save API keys');
+      }
+    } catch (error) {
+      toast.error('Failed to save API keys');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <Card>
       <CardHeader>
@@ -317,19 +400,25 @@ function APIKeysSettings() {
             id="rocketreach-api"
             type="password"
             placeholder="Your RocketReach API key"
+            value={apiKey}
+            onChange={(e) => setApiKey(e.target.value)}
           />
-          <p className="text-sm text-slate-500">
-            Get your API key from <a href="https://rocketreach.co/api" target="_blank" rel="noopener noreferrer" className="text-amber-600 hover:underline">RocketReach</a>
+          <p className="text-sm text-muted-foreground">
+            Get your API key from <a href="https://rocketreach.co/api" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">RocketReach</a>
           </p>
         </div>
 
         <div className="flex items-center space-x-2">
-          <Switch id="rocketreach-enabled" defaultChecked />
+          <Switch 
+            id="rocketreach-enabled" 
+            checked={isEnabled}
+            onCheckedChange={setIsEnabled}
+          />
           <Label htmlFor="rocketreach-enabled">Enable RocketReach Integration</Label>
         </div>
 
-        <Button onClick={() => toast.success('API keys saved!')}>
-          Save API Keys
+        <Button onClick={handleSave} disabled={loading} className="w-full">
+          {loading ? 'Saving...' : 'Save API Keys'}
         </Button>
       </CardContent>
     </Card>

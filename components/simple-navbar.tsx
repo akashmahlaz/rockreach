@@ -84,17 +84,17 @@ export function SimpleNavbar({ user }: SimpleNavbarProps) {
   }, [isAuthenticated, isAdmin])
 
   return (
-    <nav className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+    <nav className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/80 backdrop-blur-xl supports-[backdrop-filter]:bg-background/60 shadow-sm">
       <div className="flex h-14 items-center justify-between px-4 lg:px-8 max-w-7xl mx-auto">
         {/* Logo */}
         <Link 
           href={isAuthenticated ? "/dashboard" : "/"} 
-          className="flex items-center gap-2 font-semibold text-lg"
+          className="flex items-center gap-2 font-semibold text-lg group"
         >
-          <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-primary text-primary-foreground font-bold text-sm">
-            L
+          <div className="flex items-center justify-center w-9 h-9 rounded-xl bg-gradient-to-br from-primary to-primary/70 text-primary-foreground font-bold text-sm shadow-md group-hover:shadow-lg transition-all duration-200">
+            R
           </div>
-          <span className="hidden sm:inline-block">LogiGrow</span>
+          <span className="hidden sm:inline-block font-bold bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text">RockReach</span>
         </Link>
 
         {/* Desktop Navigation */}
